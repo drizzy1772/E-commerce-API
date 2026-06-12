@@ -10,7 +10,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ecommerce-api
     services:
       postgres:
         image: postgres:15
