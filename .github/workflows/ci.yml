@@ -41,7 +41,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ecommerce
           SECRET_KEY: testsecretkey
-          RESEND_API_KEY: test
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: alembic -x database_url=postgresql://postgres:postgres@localhost:5432/ecommerce upgrade head
       
       - name: Run tests
