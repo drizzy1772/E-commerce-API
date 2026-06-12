@@ -12,7 +12,7 @@ def test_register():
     response = client.post(
         "/auth/register",
         json={
-            "email": "newuser1@1test.com",
+            "email": "newuser1@test.com",
             "password": "password123"
         }
     )
