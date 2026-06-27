@@ -11,7 +11,7 @@ from sqlalchemy.orm import mapped_column, relationship
 from sqlalchemy import DateTime
 from datetime import datetime, timedelta, timezone
 import enum
-# Create your models here.
+
 class Base(DeclarativeBase):
     pass
 
@@ -72,6 +72,11 @@ class Order(Base):
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus))
 
+class UserRole(str, enum.Enum):
+    USER = "user"
+    ADMIN = "admin"
+
+
 class User(Base):
     __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -82,6 +87,9 @@ class User(Base):
     verification_code: Mapped[Optional[str]] = mapped_column(nullable=True)
     reset_code: Mapped[Optional[str]] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    role: Mapped[UserRole ]= mapped_column(Enum(UserRole), default=UserRole.USER)
+
+
     
         
 class RefreshToken(Base):

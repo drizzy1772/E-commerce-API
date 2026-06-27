@@ -18,6 +18,8 @@ services:
     depends_on:
       - db
     command: uvicorn app.main:app --host 0.0.0.0 --reload
+    security_opt:
+      - seccomp:unconfined
 
 
 volumes:

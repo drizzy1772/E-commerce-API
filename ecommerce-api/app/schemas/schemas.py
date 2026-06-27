@@ -4,6 +4,8 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from app.models.models import OrderStatus
+from pydantic import BaseModel, field_validator, ValidationError, EmailStr
+from pydantic_core import PydanticCustomError
 
 class Product(BaseModel):
     name: str
@@ -60,8 +62,22 @@ class OrderResponse(Order):
 
 
 class UserCreate(BaseModel):
-    email: str
+    email: EmailStr
     password: str
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        errors = []
+
+        if len(value) < 8:
+            errors.append('at least 8 characters')
+        if not any(c.isupper() for c in value):
+            errors.append("one uppercase letter should be")
+        if not any(c.isdigit() for c in value):
+            errors.append("one digit")
+        if errors:
+            raise ValueError(', '.join(errors))
+        return value
 
 class UserResponse(BaseModel):
     id: int
@@ -75,20 +91,27 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 class VerifyRequest(BaseModel):
-    email: str
+    email: EmailStr
     code: str
-
+    
 class ForgotPassword(BaseModel):
-    email: str
-
+    email: EmailStr
+        
 class ResetPassword(BaseModel):
-    email: str
-    code: str
+    email: EmailStr
     new_password: str
 
+    @field_validator('new_password')
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        errors = []
 
-
-
-
-
-
+        if len(value) < 8:
+            errors.append('at least 8 characters')
+        if not any(c.isupper() for c in value):
+            errors.append("one uppercase letter should be")
+        if not any(c.isdigit() for c in value):
+            errors.append("one digit")
+        if errors:
+            raise ValueError(', '.join(errors))
+        return value
