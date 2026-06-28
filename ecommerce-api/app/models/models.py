@@ -33,7 +33,7 @@ class Product(Base):
     price: Mapped[float] = mapped_column(Numeric(10, 2))
     stock: Mapped[int]
     is_active: Mapped[bool] = mapped_column(default=True)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
     category_id: Mapped[int] = mapped_column(ForeignKey("category.id"))
     category: Mapped["Category"] = relationship(back_populates="products")
     cart_items: Mapped[list["CartItem"]] = relationship(back_populates="product")
@@ -43,7 +43,7 @@ class Cart(Base):
     
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int]
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
     items: Mapped[list["CartItem"]] = relationship(back_populates="cart")
     
 class CartItem(Base):
@@ -69,7 +69,7 @@ class Order(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int]
     total_amount: Mapped[float] = mapped_column(Numeric(10, 2))
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
     status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus))
     items: Mapped[list["OrderItem"]] = relationship(back_populates="order")
 
@@ -98,7 +98,7 @@ class User(Base):
     is_verified: Mapped[bool] = mapped_column(default=False)
     verification_code: Mapped[Optional[str]] = mapped_column(nullable=True)
     reset_code: Mapped[Optional[str]] = mapped_column(nullable=True)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
     role: Mapped[UserRole ]= mapped_column(Enum(UserRole), default=UserRole.USER)
 
 
