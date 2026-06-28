@@ -3,12 +3,11 @@
 Production-ready REST API for an online store with authentication, order management, and email notifications.
 
 ## Stack
-- **FastAPI** — high-performance Python framework
-- **PostgreSQL** — primary database
-- **Redis** — request caching
-- **SQLAlchemy 2.0** — ORM with Alembic migrations
-- **Docker Compose** — containerization
-
+- **FastAPI** 
+- **PostgreSQL** 
+- **Redis** 
+- **SQLAlchemy 2.0** 
+- **Docker Compose** 
 ## Key Features
 - ✅ JWT authentication with Access + Refresh tokens
 - ✅ Email account verification and password reset (Resend)
