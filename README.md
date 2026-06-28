@@ -48,3 +48,11 @@ uvicorn app.main:app --reload
 
 ## API Docs
 Swagger UI available at: `http://localhost:8000/api/docs`
+
+## Author
+
+This project is developed by Drizzy1772.
+
+## License
+
+This project is licensed under MIT License.
