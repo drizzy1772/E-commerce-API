@@ -13,7 +13,7 @@ def test_register():
         "/auth/register",
         json={
             "email": "newuser1@test.com",
-            "password": "password123"
+            "password": "Password123"
         }
     )
 
@@ -28,7 +28,7 @@ def test_register_duplicate():
         "/auth/register",
         json={
             "email": "newuser1@test.com",
-            "password": "password123",
+            "password": "Password123",
         },
     )
     
@@ -39,7 +39,7 @@ def test_login():
         "/auth/login",
         data={
             "username": "newuser1@test.com",
-            "password": "password123"
+            "password": "Password123"
         }
     )
     print(response.json())
