@@ -7,7 +7,7 @@
 
 from uuid import uuid4
 from app.database import get_db
-from app.models.models import User, RefreshToken
+from app.models.models import User, RefreshToken, UserRole
 from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
 from jose import jwt
@@ -19,7 +19,6 @@ from app.services.email_service import send_welcome_email
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 import random
-from roles import UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
 
