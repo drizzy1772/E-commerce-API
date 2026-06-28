@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     model_config = SettingsConfigDict(env_file=".env")
     
+    REDIS_URL: str = "redis://redis:6379"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     RESEND_API_KEY: str
