@@ -13,5 +13,5 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def mock_email():
-    with patch("app.services.auth_service.send_welcome_email"):
+    with patch("resend.Emails.send"):
         yield
