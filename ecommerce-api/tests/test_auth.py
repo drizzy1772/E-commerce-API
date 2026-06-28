@@ -3,13 +3,12 @@ from fastapi.testclient import TestClient
 import uuid
 from app.main import app
 
-client = TestClient(app)
 
 TEST_EMAIL = email = f"testuser_{uuid.uuid4().hex[:8]}@test.com"
 TEST_PASSWORD = "Password123"
 
 
-def test_register():
+def test_register(client):
     response = client.post(
         "/auth/register",
         json={
@@ -24,7 +23,7 @@ def test_register():
 
     
     
-def test_register_duplicate():
+def test_register_duplicate(client):
     response = client.post(
         "/auth/register",
         json={
@@ -35,7 +34,7 @@ def test_register_duplicate():
     
     assert response.status_code == 400
     
-def test_login():
+def test_login(client):
     response = client.post(
         "/auth/login",
         data={
