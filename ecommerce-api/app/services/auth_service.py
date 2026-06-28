@@ -61,8 +61,7 @@ def register_user(db: Session, email: str, password: str):
     db.add(user)
     db.commit()
     db.refresh(user)
-    send_welcome_email(user.email, code)
-    return user
+    return user, code
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
         try:

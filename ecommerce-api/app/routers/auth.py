@@ -2,7 +2,7 @@
 
 from app.limiter import limiter
 from slowapi.util import get_remote_address
-from fastapi import Request
+from fastapi import Request, BackgroundTasks
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
 from app.schemas.schemas import UserCreate, UserResponse, Token, VerifyRequest, ForgotPassword, ResetPassword
@@ -12,8 +12,10 @@ from app.services.auth_service import register_user, verify_password, create_acc
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timezone
 from app.models.models import User, RefreshToken
-from app.services.email_service import send_reset_email
+from app.services.email_service import send_reset_email, send_welcome_email
 import random
+from fastapi import BackgroundTasks
+
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
@@ -24,13 +26,12 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/register", response_model=UserResponse)
 async def auth_register(
     create_user: UserCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
-    return register_user(
-        db,
-        create_user.email,
-        create_user.password,
-    )
+    user, code = register_user(db, create_user.email, create_user.password)
+    background_tasks.add_task(send_welcome_email, user.email, code)
+    return user
     
 @router.post("/login", response_model=Token)
 @limiter.limit("5/minute")
