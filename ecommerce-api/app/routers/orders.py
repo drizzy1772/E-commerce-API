@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.schemas import OrderResponse
 from app.models.models import OrderStatus
-from app.services.order_service import create_order, get_order, update_order, require_admin
-from app.services.auth_service import get_current_user
+from app.services.order_service import create_order, get_order, update_order
+from app.services.auth_service import get_current_user, require_admin
 from app.models.models import User
 
 
