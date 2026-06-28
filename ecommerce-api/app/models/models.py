@@ -71,6 +71,18 @@ class Order(Base):
     total_amount: Mapped[float] = mapped_column(Numeric(10, 2))
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus))
+    items: Mapped[list["OrderItem"]] = relationship(back_populates="order")
+
+class OrderItem(Base):
+    __tablename__ = "orderitem"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    order_id: Mapped[int]  = mapped_column(ForeignKey("order.id"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("product.id"))
+    quantity: Mapped[int]
+    unit_price: Mapped[float] = mapped_column(Numeric(10, 2))
+    order: Mapped["Order"] = relationship(back_populates="items")
+    product: Mapped["Product"] = relationship()
+    
 
 class UserRole(str, enum.Enum):
     USER = "user"

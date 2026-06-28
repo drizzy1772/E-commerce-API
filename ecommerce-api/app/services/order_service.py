@@ -1,4 +1,4 @@
-from app.models.models import Cart, CartItem, Order, OrderStatus, User
+from app.models.models import Cart, CartItem, Order, OrderStatus, User, OrderItem
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.services.email_service import send_order_status_email
@@ -27,9 +27,18 @@ def create_order(db: Session, user_id: int):
     db.refresh(order)
     
     for item in cart_items:
+        order_item = OrderItem(
+            order_id=order.id,
+            product_id=item.product_id,
+            quantity=item.quantity,
+            unit_price=item.product.price
+            
+        )
+        db.add(order_item)
         db.delete(item)
     db.commit()
     return order
+
 
 def get_order(db: Session, order_id: int):
     order = db.query(Order).filter(Order.id == order_id).first()
