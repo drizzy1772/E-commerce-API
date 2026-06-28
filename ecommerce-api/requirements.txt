@@ -16,3 +16,4 @@ slowapi==0.1.9
 fastapi-cache2==0.2.1
 redis==5.0.4
 resend==0.7.0
+pwdlib[argon2]==0.2.1

@@ -1,19 +1,20 @@
 
 from fastapi.testclient import TestClient
-
+import uuid
 from app.main import app
 
 client = TestClient(app)
 
-
+TEST_EMAIL = email = f"testuser_{uuid.uuid4().hex[:8]}@test.com"
+TEST_PASSWORD = "Password123"
 
 
 def test_register():
     response = client.post(
         "/auth/register",
         json={
-            "email": "newuser1@test.com",
-            "password": "Password123"
+            "email": TEST_EMAIL,
+            "password": TEST_PASSWORD
         }
     )
 
@@ -27,8 +28,8 @@ def test_register_duplicate():
     response = client.post(
         "/auth/register",
         json={
-            "email": "newuser1@test.com",
-            "password": "Password123",
+            "email": TEST_EMAIL,
+            "password": TEST_PASSWORD,
         },
     )
     
@@ -38,8 +39,8 @@ def test_login():
     response = client.post(
         "/auth/login",
         data={
-            "username": "newuser1@test.com",
-            "password": "Password123"
+            "username": TEST_EMAIL,
+            "password": TEST_PASSWORD
         }
     )
     print(response.json())

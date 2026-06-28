@@ -11,7 +11,7 @@ from app.models.models import User, RefreshToken
 from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
 from jose import jwt
-from passlib.context import CryptContext
+from pwdlib import PasswordHash
 from datetime import datetime, timezone, timedelta
 from app.config import settings
 import secrets
@@ -23,7 +23,7 @@ import random
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
 
-pwd_context = CryptContext(schemes=["bcrypt"])
+pwd_context = PasswordHash.recommended()
 
 def get_password_hash(password: str):
     return pwd_context.hash(password)
