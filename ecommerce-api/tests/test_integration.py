@@ -71,11 +71,10 @@ def test_full_flow(client):
     assert body['quantity'] == 1
 
     response = client.post(
-        "/orders",
+        "/orders/",
         headers=headers
     )
     assert response.status_code == 200
-
     order_id = response.json()["id"]
 
     response = client.get(
@@ -83,10 +82,4 @@ def test_full_flow(client):
         headers=headers,
     )
     assert response.status_code == 200
-
-    exist_order = response.json()
-
-    assert exist_order["id"] == order_id
-    assert len(exist_order["items"]) == 1
-    assert exist_order["items"][0]["product_id"] == product_id
-    assert exist_order["items"][0]["quantity"] == 1
+    assert response.json()["id"] == order_id

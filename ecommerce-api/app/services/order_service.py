@@ -37,7 +37,7 @@ async def create_order(db: Session, user_id: int):
             
         )
         db.add(order_item)
-        db.delete(item)
+        await db.delete(item)
     
     await db.commit()
     return order
