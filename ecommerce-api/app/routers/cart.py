@@ -14,4 +14,4 @@ async def add_items(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return add_to_cart(db, current_user.id, item.product_id, item.quantity)
+    return await add_to_cart(db, current_user.id, item.product_id, item.quantity)

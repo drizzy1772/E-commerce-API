@@ -19,6 +19,8 @@ from app.services.email_service import send_welcome_email
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 import random
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
 
@@ -37,19 +39,20 @@ def create_access_token(data: dict) -> str:
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
-def create_refresh_token(db: Session, user_id: int):
+async def create_refresh_token(db: AsyncSession, user_id: int):
     token = secrets.token_urlsafe(32)
     expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     refresh_token = RefreshToken(token=token, user_id=user_id, expires_at=expires_at)
     db.add(refresh_token)
-    db.commit()
-    db.refresh(refresh_token)
+    await db.commit()
+    await db.refresh(refresh_token)
     return token
 
-def register_user(db: Session, email: str, password: str):
+async def register_user(db: AsyncSession, email: str, password: str):
     code = str(random.randint(10000, 999999))
 
-    user = db.query(User).filter(User.email == email).first()
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
     if user:
         raise HTTPException(status_code=400, detail="email exists")
     hashed = get_password_hash(password)
@@ -59,11 +62,11 @@ def register_user(db: Session, email: str, password: str):
         verification_code=code
     )
     db.add(user)
-    db.commit()
-    db.refresh(user)
+    await db.commit()
+    await db.refresh(user)
     return user, code
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
             email = payload.get("sub")
@@ -75,7 +78,11 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         user = db.query(User).filter(User.email == email).first()
         if not user:
             raise HTTPException(status_code=401, detail="Invalid token")
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
         return user
+
 
 def require_admin(current_user: User = Depends(get_current_user)):
     

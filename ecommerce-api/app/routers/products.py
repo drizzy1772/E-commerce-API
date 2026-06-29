@@ -16,7 +16,7 @@ router = APIRouter(prefix="/products", tags=["products"])
 
 @router.get("/", response_model=list[ProductResponse])
 @cache(expire=60)
-def read_items(
+async def read_items(
     search: str = None,
     category_id: int = None,
     min_price: float = None,
@@ -26,7 +26,7 @@ def read_items(
     db: Session = Depends(get_db)
 ):
     logger.info(f"Fetching products = {search}, category_id={category_id}, min_price={min_price}, max_price={max_price}")
-    return get_products(db, search, category_id, min_price, max_price, skip, limit)
+    return await get_products(db, search, category_id, min_price, max_price, skip, limit)
 
 
 

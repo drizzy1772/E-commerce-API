@@ -1,15 +1,17 @@
 from app.models.models import Cart, CartItem, Order, OrderStatus, User, OrderItem
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from fastapi import HTTPException
 from app.services.email_service import send_order_status_email
+from sqlalchemy import select
 
-
-def create_order(db: Session, user_id: int):
-    cart = db.query(Cart).filter(Cart.user_id == user_id).first()
+async def create_order(db: Session, user_id: int):
+    result = await db.execute(select(Cart).where(Cart.user_id == user_id))
+    cart = result.scalar_one_or_none()
     if not cart:
         raise HTTPException(status_code=404, detail="Cart not found")
     
-    cart_items = db.query(CartItem).filter(CartItem.cart_id == cart.id).all()
+    result = await db.execute(select(CartItem).where(CartItem.cart_id == cart.id).options(selectinload(CartItem.product)))
+    cart_items = result.scalars().all()
     if not cart_items:
         raise HTTPException(status_code=400, detail="card items was not founded")
 
@@ -23,8 +25,8 @@ def create_order(db: Session, user_id: int):
         status="pending"
     )
     db.add(order)
-    db.commit()
-    db.refresh(order)
+    await db.commit()
+    await db.refresh(order)
     
     for item in cart_items:
         order_item = OrderItem(
@@ -36,23 +38,27 @@ def create_order(db: Session, user_id: int):
         )
         db.add(order_item)
         db.delete(item)
-    db.commit()
+    
+    await db.commit()
     return order
 
 
-def get_order(db: Session, order_id: int):
-    order = db.query(Order).filter(Order.id == order_id).first()
+async def get_order(db: Session, order_id: int):
+    result = await db.execute(select(Order).where(Order.id == order_id))
+    order = result.scalar_one_or_none()
     if not order:
         raise HTTPException(status_code=404, detail="order was not founded")
     return order
 
-def update_order(db: Session, order_id: int, status: OrderStatus):
-    order = db.query(Order).filter(Order.id == order_id).first()
+async def update_order(db: Session, order_id: int, status: OrderStatus):
+    result = await db.execute(select(Order).where(Order.id == order_id))
+    order = result.scalar_one_or_none()
     if not order:
         raise HTTPException(status_code=404, detail="order was not found")
-    user = db.query(User).filter(User.id == order.user_id).first()
+    result = await db.execute(select(User).where(User.id == order.user_id))
+    user = result.scalar_one_or_none()
+    
     order.status = status
-    db.commit()
-    db.refresh(order)
-    send_order_status_email(user.email, order.id, order.status)
+    await db.commit()
+    await db.refresh(order)
     return order

@@ -19,4 +19,3 @@ resend==0.7.0
 pwdlib[argon2]==0.2.1
 asyncpg==0.29.0
 asyncpg==0.29.0
-aiosqlite==0.20.0
