@@ -39,7 +39,13 @@ class CartItem(BaseModel):
     quantity: int
 
 class CartItemCreate(CartItem):
-    pass
+    @field_validator('quantity')
+    @classmethod
+    def validate_quantity(cls, v):
+        if v <= 0:
+            raise ValueError("Quantity must be at least 1")
+        return v
+    
 
 class CartResponse(CartItem):
     id: int

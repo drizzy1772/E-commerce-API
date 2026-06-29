@@ -1,7 +1,7 @@
 
 
 
-
+from fastapi import HTTPException
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -25,6 +25,10 @@ async def read_items(
     limit: int = 20,
     db: Session = Depends(get_db)
 ):
+    if min_price is not None and max_price is not None and min_price > max_price:
+        raise HTTPException(
+            status_code=400,
+            detail="min_price cannot be greater than max_price")
     logger.info(f"Fetching products = {search}, category_id={category_id}, min_price={min_price}, max_price={max_price}")
     return await get_products(db, search, category_id, min_price, max_price, skip, limit)
 

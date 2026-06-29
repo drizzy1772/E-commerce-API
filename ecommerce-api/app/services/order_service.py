@@ -52,11 +52,17 @@ async def get_order(db: Session, order_id: int):
 
 async def update_order(db: Session, order_id: int, status: OrderStatus):
     result = await db.execute(select(Order).where(Order.id == order_id))
+    
     order = result.scalar_one_or_none()
+    
     if not order:
         raise HTTPException(status_code=404, detail="order was not found")
-    result = await db.execute(select(User).where(User.id == order.user_id))
-    user = result.scalar_one_or_none()
+
+    if order.status in [OrderStatus.cancelled, OrderStatus.delivered]:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot update a cancelled order or delivered "
+        )
     
     order.status = status
     await db.commit()
