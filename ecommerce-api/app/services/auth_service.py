@@ -75,7 +75,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
         
-        user = db.query(User).filter(User.email == email).first()
+        result = db.execute(select(User).filter(User.email == email))
+        user = result.scalar_one_or_none()
         if not user:
             raise HTTPException(status_code=401, detail="Invalid token")
         db.add(user)
