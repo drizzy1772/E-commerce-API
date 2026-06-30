@@ -50,8 +50,9 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
-## Structure of Project
-<img width="560" height="406" alt="ecommerce-apitonkaaa drawio" src="https://github.com/user-attachments/assets/edf5fcb2-6d71-4143-85b9-b9bb5d430bfa" />
+## Structure of Project:
+<img width="506" height="396" alt="kingggbroski drawio" src="https://github.com/user-attachments/assets/2223baec-5888-4b75-8bff-4b15f830c79a" />
+
 
 
 
