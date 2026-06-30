@@ -21,6 +21,7 @@ from jose import jwt, JWTError
 import random
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.repositories import auth_repository
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
 
@@ -36,37 +37,25 @@ def create_access_token(data: dict) -> str:
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 async def create_refresh_token(db: AsyncSession, user_id: int):
     token = secrets.token_urlsafe(32)
     expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-    refresh_token = RefreshToken(token=token, user_id=user_id, expires_at=expires_at)
-    db.add(refresh_token)
-    await db.commit()
-    await db.refresh(refresh_token)
+    await auth_repository.create_refresh_token(db, token, user_id, expires_at)
     return token
 
 async def register_user(db: AsyncSession, email: str, password: str):
     code = str(random.randint(10000, 999999))
-
-    result = await db.execute(select(User).where(User.email == email))
-    user = result.scalar_one_or_none()
+    user = await auth_repository.get_user_by_email(db, email)
+    
     if user:
         raise HTTPException(status_code=400, detail="email exists")
     hashed = get_password_hash(password)
-    user = User(
-        email=email,
-        hashed_password=hashed,
-        verification_code=code
-    )
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
+    user = await auth_repository.create_user(db, email, hashed, code)
     return user, code
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
             email = payload.get("sub")
@@ -75,13 +64,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
         
-        result = await db.execute(select(User).filter(User.email == email))
-        user = result.scalar_one_or_none()
+        user = await auth_repository.get_user_by_email(db, email)
         if not user:
             raise HTTPException(status_code=401, detail="Invalid token")
-        db.add(user)
-        await db.commit()
-        await db.refresh(user)
         return user
 
 

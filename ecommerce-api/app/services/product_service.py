@@ -4,7 +4,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.models.models import Product
-
+from app.repositories import product_repository
 
 
 
@@ -27,6 +27,4 @@ async def get_products(db, search=None, category_id=None, min_price=None, max_pr
     
     query = query.offset(skip).limit(limit)
 
-    result = await db.execute(query)
-    return result.scalars().all()
-
+    return await product_repository.get_products(db, query)
