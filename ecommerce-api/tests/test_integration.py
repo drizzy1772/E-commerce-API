@@ -83,3 +83,4 @@ def test_full_flow(client):
     )
     assert response.status_code == 200
     assert response.json()["id"] == order_id
+
