@@ -21,7 +21,11 @@ Production-ready REST API for an online store with authentication, order managem
 - ✅ CI/CD pipeline via GitHub Actions
 - ✅ CORS configuration
 
-## Endpoints
+## API Scheme
+<img width="1411" height="1066" alt="ecommerce-eee" src="https://github.com/user-attachments/assets/31e522ad-d154-4110-a732-8e1df6435c28" />
+
+
+## API Endpoints
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | /products | Product list with filters and pagination |
