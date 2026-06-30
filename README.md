@@ -50,6 +50,11 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
+## Structure of Project
+<img width="560" height="406" alt="ecommerce-apitonka drawio" src="https://github.com/user-attachments/assets/117e3edb-57d2-4c59-9f3b-d81932e1d3d2" />
+
+
+
 ## API Docs
 Swagger UI available at: `http://localhost:8000/api/docs`
 
