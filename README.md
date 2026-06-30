@@ -51,7 +51,8 @@ uvicorn app.main:app --reload
 ```
 
 ## Structure of Project:
-<img width="487" height="407" alt="sfsdffsdgg drawio" src="https://github.com/user-attachments/assets/cc5dc06f-9ebf-4035-93c5-ff4e3ca36c61" />
+<img width="487" height="407" alt="1231231 drawio" src="https://github.com/user-attachments/assets/85262da4-5fa5-42c2-984a-ec9afabc5534" />
+
 
 
 
