@@ -65,6 +65,9 @@ uvicorn app.main:app --reload
 <img width="1365" height="790" alt="Screenshot 2026-07-01 at 01-00-36 E-commerce API - Swagger UI" src="https://github.com/user-attachments/assets/e2204d90-46ae-47fc-9f32-d885917b51bc" />
 
 
+## Link for API:
+## https://e-commerce-api-uo9k.onrender.com/api/docs
+
 ## Author
 
 This project is developed by Drizzy1772.
