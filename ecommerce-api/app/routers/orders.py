@@ -13,15 +13,29 @@ from app.services.auth_service import get_current_user, require_admin
 from app.models.models import User
 from app.services.email_service import send_order_status_email
 from sqlalchemy import select
+from fastapi.responses import JSONResponse
+from app.dependencies.idempotency import check_idempotency_key
+from app.models.enums import IdempotencyStatus
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
 @router.post("/", response_model=OrderResponse)
 async def add_orders(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
+    current_user: User = Depends(get_current_user),
+    idempotency_record = Depends(check_idempotency_key),
+):  
+    
+    if isinstance(idempotency_record, JSONResponse):
+        return idempotency_record
     order = await create_order(db, current_user.id)
+
+    idempotency_record.status = IdempotencyStatus.COMPLETED
+    idempotency_record.response_status = 201
+    idempotency_record.response_body = OrderResponse.model_validate(order).model_dump()
+
+    await db.commit()
+
     return order
 
 @router.get("/{order_id}", response_model=OrderResponse)
