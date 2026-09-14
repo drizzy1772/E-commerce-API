@@ -6,6 +6,15 @@ from datetime import datetime
 from app.models.models import OrderStatus
 from pydantic import BaseModel, field_validator, ValidationError, EmailStr
 from pydantic_core import PydanticCustomError
+from typing import Generic, TypeVar
+
+T = TypeVar("T")
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    items: list[T]
+    total: int
+    has_next: bool
+    model_config = ConfigDict(from_attributes=True)
 
 class Product(BaseModel):
     name: str

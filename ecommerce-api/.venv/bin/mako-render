@@ -1,6 +1,4 @@
-#!/bin/sh
-'''exec' "/home/heyydarling/twizzyy/E-comm API/ecommerce-api/.venv/bin/python3.11" "$0" "$@"
-' '''
+#!/home/heyydarling/tonka/E-commerce-API/ecommerce-api/.venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

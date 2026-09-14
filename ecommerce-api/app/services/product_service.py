@@ -2,7 +2,7 @@
 
 
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, func
 from app.models.models import Product
 from app.repositories import product_repository
 
@@ -24,7 +24,12 @@ async def get_products(db, search=None, category_id=None, min_price=None, max_pr
     
     if max_price:
         query = query.where(Product.price <= max_price)
-    
+
+    count_query = select(func.count()).select_from(query.subquery())
+    total = await db.scalar(count_query)
+
     query = query.offset(skip).limit(limit)
 
-    return await product_repository.get_products(db, query)
+
+    items = await product_repository.get_products(db, query)
+    return items, total

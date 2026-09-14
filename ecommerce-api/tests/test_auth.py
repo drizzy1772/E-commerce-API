@@ -10,7 +10,7 @@ TEST_PASSWORD = "Password123"
 
 def test_register(client):
     response = client.post(
-        "/auth/register",
+        "/api/v1/auth/register",
         json={
             "email": TEST_EMAIL,
             "password": TEST_PASSWORD
@@ -25,7 +25,7 @@ def test_register(client):
     
 def test_register_duplicate(client):
     response = client.post(
-        "/auth/register",
+        "/api/v1/auth/register",
         json={
             "email": TEST_EMAIL,
             "password": TEST_PASSWORD,
@@ -36,7 +36,7 @@ def test_register_duplicate(client):
     
 def test_login(client):
     response = client.post(
-        "/auth/login",
+        "/api/v1/auth/login",
         data={
             "username": TEST_EMAIL,
             "password": TEST_PASSWORD

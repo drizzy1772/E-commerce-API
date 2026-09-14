@@ -3,7 +3,7 @@
 
 
 
-from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi import APIRouter, Depends, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.schemas import OrderResponse
@@ -16,10 +16,12 @@ from sqlalchemy import select
 from fastapi.responses import JSONResponse
 from app.dependencies.idempotency import check_idempotency_key
 from app.models.enums import IdempotencyStatus
+from app.services.events import publish_order_status_changed
+
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
-@router.post("/", response_model=OrderResponse)
+@router.post("/", response_model=OrderResponse, status_code=201)
 async def add_orders(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -32,7 +34,7 @@ async def add_orders(
 
     idempotency_record.status = IdempotencyStatus.COMPLETED
     idempotency_record.response_status = 201
-    idempotency_record.response_body = OrderResponse.model_validate(order).model_dump()
+    idempotency_record.response_body = OrderResponse.model_validate(order).model_dump(mode="json")
 
     await db.commit()
 
@@ -52,6 +54,7 @@ async def updating_order(
     status: OrderStatus,
     order_id: int,
     background_tasks: BackgroundTasks,
+    request: Request,
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin)
 ):
@@ -59,4 +62,7 @@ async def updating_order(
     result = await db.execute(select(User).where(User.id == update.user_id))
     user = result.scalar_one_or_none()
     background_tasks.add_task(send_order_status_email, user.email, update.status, update.id)
+
+    background_tasks.add_task(publish_order_status_changed, request.app.state.redis, update.id, update.status)
+
     return update

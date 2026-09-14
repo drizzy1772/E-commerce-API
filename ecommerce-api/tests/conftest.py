@@ -14,6 +14,7 @@ from app.main import app
 import pytest
 from unittest.mock import patch
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from app.models.idempotency import IdempotencyKey
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 

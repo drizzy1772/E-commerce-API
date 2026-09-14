@@ -3,8 +3,9 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.dependencies import get_current_user, get_db
-from app.models.user import User
+from app.services.auth_service import get_current_user
+from app.database import get_db
+from app.models.models import User
 from app.models.idempotency import IdempotencyKey
 from app.models.enums import IdempotencyStatus
 from fastapi.responses import JSONResponse
@@ -39,6 +40,7 @@ async def check_idempotency_key(
     try:
         db.add(new_record)
         await db.commit()
+        return new_record
     except IntegrityError:
         await db.rollback()
         raise HTTPException(status_code=409, detail="existing")

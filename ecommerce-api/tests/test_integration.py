@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 import asyncio
 from tests.conftest import TestingSessionLocal
 from app.models.models import Product, Category
-
+import uuid
 
 client = TestClient(app)
 
@@ -38,12 +38,12 @@ def test_full_flow(client):
             return product.id
 
     product_id = asyncio.get_event_loop().run_until_complete(seed())
-    response = client.post("/auth/register", json=TEST_USER)
+    response = client.post("/api/v1/auth/register", json=TEST_USER)
     assert response.status_code == 200
 
 
     response = client.post(
-            "/auth/login",
+            "/api/v1/auth/login",
             data={
                 "username": TEST_USER["email"],
                 "password": TEST_USER["password"],
@@ -57,7 +57,7 @@ def test_full_flow(client):
 
 
     response = client.post(
-            "/cart/items",
+            "/api/v1/cart/items",
             json={
                 "product_id": product_id,
                 "quantity": 1,
@@ -70,17 +70,19 @@ def test_full_flow(client):
     assert body['product_id'] == product_id
     assert body['quantity'] == 1
 
+    headers_with_idempotency = {**headers, "Idempotency-Key": str(uuid.uuid4())}
+
     response = client.post(
-        "/orders/",
-        headers=headers
+        f"/api/v1/orders/",
+        headers=headers_with_idempotency,
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
     order_id = response.json()["id"]
 
     response = client.get(
-        f"/orders/{order_id}",
+        f"/api/v1/orders/{order_id}",
         headers=headers,
     )
+
     assert response.status_code == 200
     assert response.json()["id"] == order_id
-

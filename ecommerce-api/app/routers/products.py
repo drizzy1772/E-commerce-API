@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.schemas import ProductResponse
+from app.schemas.schemas import ProductResponse, PaginatedResponse
 from app.services.product_service import get_products
 from fastapi_cache.decorator import cache
 import logging
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/products", tags=["products"])
 
-@router.get("/", response_model=list[ProductResponse])
+@router.get("/", response_model=PaginatedResponse[ProductResponse])
 @cache(expire=60)
 async def read_items(
     search: str = None,
@@ -30,9 +30,15 @@ async def read_items(
             status_code=400,
             detail="min_price cannot be greater than max_price")
     logger.info(f"Fetching products = {search}, category_id={category_id}, min_price={min_price}, max_price={max_price}")
-    return await get_products(db, search, category_id, min_price, max_price, skip, limit)
 
+    items, total = await get_products(db, search, category_id, min_price, max_price, skip, limit)
+    has_next = skip + limit < total
 
+    return PaginatedResponse(
+        items=[ProductResponse.model_validate(item) for item in items],
+        total=total,
+        has_next=has_next
+    )
 
 
 
