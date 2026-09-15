@@ -8,18 +8,33 @@ Production-ready REST API for an online store with authentication, order managem
 - **Redis** 
 - **SQLAlchemy 2.0** 
 - **Docker Compose** 
+
 ## Key Features
-- ✅ JWT authentication with Access + Refresh tokens
-- ✅ Email account verification and password reset (Resend)
-- ✅ Cart and order management with transactions
-- ✅ State machine for order statuses
-- ✅ Email notifications on order status change
-- ✅ Rate limiting on critical endpoints (slowapi)
-- ✅ Redis caching for GET requests
-- ✅ Global error handling in RFC 7807 format
-- ✅ Test coverage (pytest)
-- ✅ CI/CD pipeline via GitHub Actions
-- ✅ CORS configuration
+
+### Security & Authentication
+- **JWT-based Auth:** Secure session management using robust Access and Refresh tokens.
+- **Account Verification:** Email confirmations and password resets powered by **Resend**.
+- **Rate Limiting:** Brute-force and spam prevention on critical endpoints (login/register) using **SlowAPI**.
+- **CORS Configured:** Strict Cross-Origin Resource Sharing policies applied.
+
+### Core Business Logic
+- **Cart & Order Management:** Reliable transaction-based processing for e-commerce flows.
+- **Order State Machine:** Deterministic and strict control over order status transitions.
+- **Event Notifications:** Automated email dispatch on order status changes.
+
+### Performance & API Standards
+- **Redis Caching:** Fast response times for heavy/frequent `GET` requests.
+- **RFC 7807 Standard:** Global error handling returning structured problem details.
+
+### QA & DevOps
+- **Test Coverage:** Comprehensive testing suite built with **pytest**.
+- **CI/CD Pipeline:** Automated testing and deployment workflows via **GitHub Actions**.
+ 
+### Security 
+  * JWT-based authentication, password hashing (bcrypt), and rate-limiting via SlowAPI.
+  * `POST /auth/login` (5 req/min) — Brute-force protection.
+  * `POST /auth/register` (3 req/min) — Spam account prevention.
+  * `POST /auth/forgot-password` (3 req/min) — Email spam prevention.
 
 ## API Scheme
 <img width="1411" height="1066" alt="ecommerce-eee" src="https://github.com/user-attachments/assets/31e522ad-d154-4110-a732-8e1df6435c28" />
