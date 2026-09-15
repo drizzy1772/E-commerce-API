@@ -24,11 +24,14 @@ class RefreshTokenRequest(BaseModel):
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+
 @router.post("/register", response_model=UserResponse)
+@limiter.limit("3/minute")
 async def auth_register(
+    request: Request,
     create_user: UserCreate,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     user, code = await register_user(db, create_user.email, create_user.password)
     background_tasks.add_task(send_welcome_email, user.email, code)
@@ -39,7 +42,7 @@ async def auth_register(
 async def auth_login(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(select(User).where(User.email == form_data.username))
     db_user = result.scalar_one_or_none()
@@ -53,10 +56,10 @@ async def auth_login(
 
 @router.post("/refresh", response_model=Token)
 async def autho_refresh(
-    request: RefreshTokenRequest,
-    db: Session = Depends(get_db)
+    payload: RefreshTokenRequest,
+    db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(select(RefreshToken).where(RefreshToken.token == request.refresh_token))
+    result = await db.execute(select(RefreshToken).where(RefreshToken.token == payload.refresh_token))
     token = result.scalar_one_or_none()
     if not token:
         raise HTTPException(status_code=401, detail="token was not founded")
@@ -71,12 +74,12 @@ async def autho_refresh(
     user = result.scalar_one_or_none()
     access_token = create_access_token(data={"sub": user.email})
     refresh_token = await create_refresh_token(db, token.user_id)
-    return Token(access_token=access_token, refresh_token=request.refresh_token, token_type="bearer")
+    return Token(access_token=access_token, refresh_token=payload.refresh_token, token_type="bearer")
 
 @router.post("/verify", response_model=UserResponse)
 async def autho_verify(
     request: VerifyRequest,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(select(User).where(User.email == request.email))
     user = result.scalar_one_or_none()
@@ -84,7 +87,7 @@ async def autho_verify(
         raise HTTPException(status_code=401, detail="Email was not founds")
     
     if user.verification_code != request.code:
-        raise HTTPException(status_code=401, detail="password was not verified")
+        raise HTTPException(status_code=401, detail="Invalid verification code")
     
     user.is_verified = True
     user.is_active = True
@@ -94,11 +97,14 @@ async def autho_verify(
     return user
 
 @router.post("/forgot-password", response_model=UserResponse)
+@limiter.limit("3/minute")
 async def forgot_password(
-    request: ForgotPassword,
-    db: Session = Depends(get_db)
+    request: Request,
+    payload: ForgotPassword,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(select(User).where(User.email == request.email))
+    result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="user was not founded")
@@ -106,13 +112,15 @@ async def forgot_password(
     user.reset_code = code
     await db.commit()
     await db.refresh(user)
-    send_reset_email(user.email, code)
+
+    background_tasks.add_task(send_reset_email, user.email, code)
+
     return user
 
 @router.post("/reset-password", response_model=UserResponse)
 async def autho_reset(
     request: ResetPassword,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(select(User).where(User.email == request.email))
     user = result.scalar_one_or_none()
