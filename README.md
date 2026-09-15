@@ -8,8 +8,8 @@ Production-ready REST API for an online store with authentication, order managem
 - **Redis** 
 - **SQLAlchemy 2.0** 
 - **Docker Compose** 
+
 ## Key Features
-## ✨ Features
 
 ### Security & Authentication
 - **JWT-based Auth:** Secure session management using robust Access and Refresh tokens.
@@ -30,7 +30,8 @@ Production-ready REST API for an online store with authentication, order managem
 - **Test Coverage:** Comprehensive testing suite built with **pytest**.
 - **CI/CD Pipeline:** Automated testing and deployment workflows via **GitHub Actions**.
  
-- **Security**: JWT-based authentication, password hashing (bcrypt), and rate-limiting via SlowAPI.
+### Security 
+  * JWT-based authentication, password hashing (bcrypt), and rate-limiting via SlowAPI.
   * `POST /auth/login` (5 req/min) — Brute-force protection.
   * `POST /auth/register` (3 req/min) — Spam account prevention.
   * `POST /auth/forgot-password` (3 req/min) — Email spam prevention.
