@@ -20,7 +20,7 @@ Production-ready REST API for an online store with authentication, order managem
 - ✅ Test coverage (pytest)
 - ✅ CI/CD pipeline via GitHub Actions
 - ✅ CORS configuration
-- * **Security**: JWT-based authentication, password hashing (bcrypt), and rate-limiting via SlowAPI.
+ * **Security**: JWT-based authentication, password hashing (bcrypt), and rate-limiting via SlowAPI.
   * `POST /auth/login` (5 req/min) — Brute-force protection.
   * `POST /auth/register` (3 req/min) — Spam account prevention.
   * `POST /auth/forgot-password` (3 req/min) — Email spam prevention.
