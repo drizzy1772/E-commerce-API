@@ -9,17 +9,17 @@ Production-ready REST API for an online store with authentication, order managem
 - **SQLAlchemy 2.0** 
 - **Docker Compose** 
 ## Key Features
-- ✅ JWT authentication with Access + Refresh tokens
-- ✅ Email account verification and password reset (Resend)
-- ✅ Cart and order management with transactions
-- ✅ State machine for order statuses
-- ✅ Email notifications on order status change
-- ✅ Rate limiting on critical endpoints (slowapi)
-- ✅ Redis caching for GET requests
-- ✅ Global error handling in RFC 7807 format
-- ✅ Test coverage (pytest)
-- ✅ CI/CD pipeline via GitHub Actions
-- ✅ CORS configuration
+- JWT authentication with Access + Refresh tokens
+- Email account verification and password reset (Resend)
+- Cart and order management with transactions
+- State machine for order statuses
+- Email notifications on order status change
+- Rate limiting on critical endpoints (slowapi)
+- Redis caching for GET requests
+- Global error handling in RFC 7807 format
+- Test coverage (pytest)
+- CI/CD pipeline via GitHub Actions
+- CORS configuration
  * **Security**: JWT-based authentication, password hashing (bcrypt), and rate-limiting via SlowAPI.
   * `POST /auth/login` (5 req/min) — Brute-force protection.
   * `POST /auth/register` (3 req/min) — Spam account prevention.
