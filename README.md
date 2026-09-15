@@ -20,6 +20,10 @@ Production-ready REST API for an online store with authentication, order managem
 - ✅ Test coverage (pytest)
 - ✅ CI/CD pipeline via GitHub Actions
 - ✅ CORS configuration
+- * **Security**: JWT-based authentication, password hashing (bcrypt), and rate-limiting via SlowAPI.
+  * `POST /auth/login` (5 req/min) — Brute-force protection.
+  * `POST /auth/register` (3 req/min) — Spam account prevention.
+  * `POST /auth/forgot-password` (3 req/min) — Email spam prevention.
 
 ## API Scheme
 <img width="1411" height="1066" alt="ecommerce-eee" src="https://github.com/user-attachments/assets/31e522ad-d154-4110-a732-8e1df6435c28" />
