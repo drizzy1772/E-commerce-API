@@ -5,12 +5,17 @@
 
 
 import { API_URL } from "./config";
-import AuthManager from "./Auth";
+import AuthManager from "./auth/Auth";
 
 export class HttpError extends Error {
-    constructor(public status: number, message: string, public data?: any) {
+    status: number;
+    data?: unknown;
+
+    constructor(status: number, message: string, data?: unknown) {
         super(message);
         this.name = "HttpError";
+        this.status = status;
+        this.data = data;
     }
 }
 

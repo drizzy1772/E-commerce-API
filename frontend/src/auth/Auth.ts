@@ -1,8 +1,8 @@
 
 
-import { AuthState } from "./types";
+import type { AuthState } from "./types";
 import { decodeJWT } from "./jwt";
-import { API_URL } from "./config";
+import { API_URL } from "../config";
 
 export default class AuthManager {
 
@@ -11,12 +11,12 @@ export default class AuthManager {
     private listeners: Array<(state: AuthState) => void> = [];
 
     async login(email: string, password: string): Promise<void> {
-        const response = await fetch(`${API_URL}/login`, {
+        const response = await fetch(`${API_URL}/auth/login`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/x-www-form-urlencoded"
             },
-            body: JSON.stringify({ email, password})
+            body: new URLSearchParams({ username: email, password })
         });
 
         if (!response.ok) {
@@ -46,7 +46,7 @@ export default class AuthManager {
         } 
 
         localStorage.removeItem(this.TOKEN_KEY);
-        this.notify({ isAuthenticated: false, role: null });
+        this.notify({ isAuthenticated: false, token: null, role: null });
 
     }
 
@@ -61,13 +61,13 @@ export default class AuthManager {
         const token = localStorage.getItem(this.TOKEN_KEY);
 
         if (!token) {
-            return { isAuthenticated: false, role: null};
+            return { isAuthenticated: false, token: null, role: null};
         }
         
         const payload = decodeJWT(token);
     
         if (!payload) {
-            return { isAuthenticated: false, role: null};
+            return { isAuthenticated: false, token: null, role: null};
         }
 
         const currentTime = Date.now() / 1000;
@@ -75,10 +75,10 @@ export default class AuthManager {
         if (payload.exp < currentTime) {
             this.logout();
             
-            return { isAuthenticated: false, role: null};
+            return { isAuthenticated: false, token: null, role: null};
         }
         
-        return { isAuthenticated: true, role: payload.role};
+        return { isAuthenticated: true, token, role: payload.role ?? null};
     }
 
     onChange(callback: (state: AuthState) => void): void {
@@ -90,4 +90,3 @@ export default class AuthManager {
         }
     }
 }
-

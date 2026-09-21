@@ -1,6 +1,6 @@
 
 
-import { JWTPayload } from "./types";
+import type { JWTPayload } from "./types";
 
 
 export function decodeJWT(token: string): JWTPayload | null {

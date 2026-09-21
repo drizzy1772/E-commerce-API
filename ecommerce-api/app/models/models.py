@@ -98,7 +98,7 @@ class User(Base):
     is_verified: Mapped[bool] = mapped_column(default=False)
     verification_code: Mapped[Optional[str]] = mapped_column(nullable=True)
     reset_code: Mapped[Optional[str]] = mapped_column(nullable=True)
-    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     role: Mapped[UserRole ]= mapped_column(Enum(UserRole), default=UserRole.USER)
 
 

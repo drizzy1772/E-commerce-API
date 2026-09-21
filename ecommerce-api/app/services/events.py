@@ -10,6 +10,5 @@ async def publish_order_status_changed(redis, order_id: int, new_status: str):
     }
 
     json_string = json.dumps(event_json)
-    print(json_string)
 
     await redis.publish("order_status_changed", json_string)

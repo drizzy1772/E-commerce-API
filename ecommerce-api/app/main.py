@@ -31,7 +31,7 @@ from app.services.events_consumer import order_status_listener
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    redis = aioredis.from_url(settings.REDIS_URL, encoding="utf-8", decode_response=True)
+    redis = aioredis.from_url(settings.REDIS_URL, encoding="utf-8", decode_responses=True)
     FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
     app.state.redis = redis
 
@@ -53,12 +53,13 @@ app = FastAPI(
 
 origins = [
     "http://localhost:3000",
+    "http://localhost:5173",
     "http://localhost:5267",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

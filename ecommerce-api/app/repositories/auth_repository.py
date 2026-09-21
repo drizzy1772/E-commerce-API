@@ -3,7 +3,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload, Session
 from app.models.models import Product, Cart, CartItem, Order, OrderItem, User, RefreshToken
-
+from datetime import datetime
 
 
 async def get_user_by_email(db, email):
@@ -14,7 +14,8 @@ async def create_user(db, email, hashed_password, code):
     new_user = User(
         email=email,
         hashed_password=hashed_password,
-        verification_code=code
+        verification_code=code,
+        created_at=datetime.now()
     )
     db.add(new_user)
     await db.commit()
