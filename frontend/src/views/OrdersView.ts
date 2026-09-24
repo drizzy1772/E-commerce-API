@@ -3,15 +3,18 @@
 
 
 
-import HTTPClient from "../api/HttpClient";
-import HttpClient from "../HttpClient";
+import HttpClient, { HttpError, NetworkError } from "../api/HttpClient";
 import Router from "../router/Router";
+import { createElement } from "../ui/dom";
 
 //my first order
 interface Order {
     id: number | string;
+    user_id: string;
+    total_amount: number;
     status: string;
-    total: number;
+    created_at: string;
+
 }
 
 //stats of order
@@ -24,9 +27,11 @@ interface OrdersViewState {
 //point of enter in /orders
 export function OrdersView(
     container: HTMLElement,
-    httpClient: HTTPClient,
+    httpClient: HttpClient,
     router: Router
 ): () => void {
+
+    const controller = new AbortController();
     
     const state: OrdersViewState = {
         orders: [],
@@ -38,23 +43,24 @@ export function OrdersView(
 
     updateUI();
 
-    fetchOrders(httpClient, state, updateUI);
+
+    fetchOrders(httpClient, state, updateUI, controller.signal);
 
     //exit from page
     return () => {
-        container.innerHTML = "";
+        controller.abort();
     };
 }
 
 //walk on server and changing stats
     async function fetchOrders(
-        httpClient: HTTPClient,
+        httpClient: HttpClient,
         state: OrdersViewState,
-        updateUI: () => void
+        updateUI: () => void,
+        signal: AbortSignal
     ) {
         try {
-            const data = await httpClient.request<Order[]>("/api/v1/orders");
-
+            const data = await httpClient.request<Order[]>("/api/v1/orders/", { signal });
 
         
             state.orders = data;
@@ -65,7 +71,18 @@ export function OrdersView(
 
 
         } catch (error: any) {
-            state.error = error.message;
+            if (error instanceof DOMException && error.name === "AbortError") {
+                return;
+            }
+
+            if (error instanceof HttpError) {
+                state.error = `Server Error [${error.status}]: ${error.message}`;
+            } else if (error instanceof NetworkError) {
+                state.error = "Network Error: Please check your internet connection.";
+            } else {
+                state.error = error.message;
+            }
+
             state.loading = false;
             updateUI();
         }
@@ -73,43 +90,36 @@ export function OrdersView(
 
 //watch for a state and give an HTML
 function render(container: HTMLElement, state: OrdersViewState) {
+    container.replaceChildren();
+
     if (state.loading === true) {
-        container.innerHTML = "<h2>Orders loading...</h2>";
-        return;
+        const loadingText = createElement("h2", {}, ["Orders loading..."])
+            container.appendChild(loadingText);
+            return;
     }
 
     if (state.error !== null) {
-        container.innerHTML = `<h2 style="color: red;">Error: ${state.error}</h2>`
+        const errorText = createElement("h2", { style: "color: red;" }, [`Error: ${state.error}`]);
+        container.appendChild(errorText);
         return;
     }
     
    
     if (state.orders.length === 0) {
-    container.innerHTML = "<h2>You didnt have orders right now</h2>"
-    return;
+        const emptyText = createElement("h2", {}, ["You didnt have orders right now"]);
+        container.appendChild(emptyText);
+        return;
     }
 
-    const tableRows = state.orders.map(order => {
-        return `<tr>
-            <td style="border: 1px solid #ccc; padding: 8px;">${order.id}</td>
-               <td style="border: 1px solid #ccc; padding: 8px;">${order.status}</td>
-               <td style="border: 1px solid #ccc; padding: 8px;">$${order.total}</td>
-           </tr>`;
-        }).join("");
+        const list = createElement("div", { class: "orders-list" })
 
-    container.innerHTML = `
-        <h2>Your orders</h2>
-        <table style="width: 100%; border-collapse: collapse; text-align: left;">
-               <thead style="background: #f4f4f4;">
-                   <tr>
-                       <th style="border: 1px solid #ccc; padding: 8px;">ID</th>
-                       <th style="border: 1px solid #ccc; padding: 8px;">Stats</th>
-                       <th style="border: 1px solid #ccc; padding: 8px;">Total</th>
-                   </tr>
-               </thead>
-               <tbody>
-                   ${tableRows}
-               </tbody>
-           </table>
-       `;
+        for (const order of state.orders) {
+            const orderText = `Order: ${order.id} | Status: ${order.status} | Total: $${order.total_amount}`;
+
+            const card = createElement("div", { style: "border: 1px solid #ccc; padding: 8px;" }, [orderText]);
+
+            list.appendChild(card);
+
+        }
+        container.appendChild(list);
     }

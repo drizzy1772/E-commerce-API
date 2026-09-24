@@ -15,8 +15,8 @@ from app.models.models import Product, Cart, CartItem, Order, OrderItem, User
 async def get_cart_items_with_product(db: Session, cart_id: int):
     products = (
         select(CartItem)
-        .where(CartItem.cart_id == cart_id)
         .options(selectinload(CartItem.product))
+        .where(CartItem.cart_id == cart_id)
     )
     result = await db.execute(products)
     return result.scalars().all()

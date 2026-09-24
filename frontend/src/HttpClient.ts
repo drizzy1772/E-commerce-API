@@ -26,7 +26,7 @@ export class NetworkError extends Error {
     }
 }
 
-export default class HttpClient {
+export class HttpClient {
     private authManager: AuthManager;
     constructor(authManager: AuthManager) {
         this.authManager = authManager;

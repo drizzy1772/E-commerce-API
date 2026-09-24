@@ -17,7 +17,8 @@ from fastapi.responses import JSONResponse
 from app.dependencies.idempotency import check_idempotency_key
 from app.models.enums import IdempotencyStatus
 from app.services.events import publish_order_status_changed
-
+from typing import List
+from app.models.models import Order
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -39,6 +40,20 @@ async def add_orders(
     await db.commit()
 
     return order
+
+
+@router.get("", response_model=List[OrderResponse])
+async def get_my_orders(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    stmt = select(Order).where(Order.user_id == current_user.id)
+
+    result = await db.execute(stmt)
+
+    items = result.scalars().all()
+
+    return items
 
 @router.get("/{order_id}", response_model=OrderResponse)
 async def getting_order(

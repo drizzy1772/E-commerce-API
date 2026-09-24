@@ -12,6 +12,9 @@ from alembic import context
 
 from app.models.models import Base
 
+from app.models.idempotency import IdempotencyKey
+
+
 import os
 
 # this is the Alembic Config object, which provides
