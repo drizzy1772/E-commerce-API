@@ -5,6 +5,7 @@
 
 import HttpClient, { HttpError, NetworkError } from "../api/HttpClient";
 import Router from "../router/Router";
+import { renderAsyncState } from "../ui/asyncState";
 import { createElement } from "../ui/dom";
 
 //my first order
@@ -88,38 +89,30 @@ export function OrdersView(
         }
     }
 
+function createOrderCard(order: Order): HTMLElement {
+
+    const cardText = `Order: ${order.id} | Status: ${order.status} | Total: ${order.total_amount} USD`
+
+    return createElement("div", { class: "order-card", style: "border: 1px solid #ccc; padding: 8px; margin-bottom: 8px;" }, [cardText])
+
+}
+
 //watch for a state and give an HTML
 function render(container: HTMLElement, state: OrdersViewState) {
-    container.replaceChildren();
-
-    if (state.loading === true) {
-        const loadingText = createElement("h2", {}, ["Orders loading..."])
-            container.appendChild(loadingText);
+    renderAsyncState(container, state, (cont, validState) => {
+        if (validState.orders.length === 0) {
+            const createOrders = createElement("h2", {}, [`You didn't have orders right now`]);
+            cont.appendChild(createOrders);
             return;
-    }
+        }
 
-    if (state.error !== null) {
-        const errorText = createElement("h2", { style: "color: red;" }, [`Error: ${state.error}`]);
-        container.appendChild(errorText);
-        return;
-    }
-    
-   
-    if (state.orders.length === 0) {
-        const emptyText = createElement("h2", {}, ["You didnt have orders right now"]);
-        container.appendChild(emptyText);
-        return;
-    }
+        const list = createElement("div", { class: { "orders-list" } })
 
-        const list = createElement("div", { class: "orders-list" })
-
-        for (const order of state.orders) {
-            const orderText = `Order: ${order.id} | Status: ${order.status} | Total: $${order.total_amount}`;
-
-            const card = createElement("div", { style: "border: 1px solid #ccc; padding: 8px;" }, [orderText]);
-
+        for (const order of validState.orders) {
+            const card = createOrderCard(order);
             list.appendChild(card);
 
         }
-        container.appendChild(list);
+        cont.appendChild(list);
+    });
     }
