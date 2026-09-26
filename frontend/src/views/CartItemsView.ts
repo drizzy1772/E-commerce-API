@@ -18,7 +18,7 @@ export interface CartViewState {
     items: CartItem[];
     loading: boolean;
     error: string | null;
-    deletingItemId: string | number | null;
+    deletingItemIds: Set<string | number>;
 }
 
 export function CartItemsView (
@@ -32,11 +32,10 @@ export function CartItemsView (
         items: [],
         loading: true,
         error: null,
-        deletingItemId: null,
+        deletingItemIds: new Set(),
     };
 
-
-    const updateUI = () => render(container, state, httpClient, updateUI);
+    const updateUI = () => render(container, state, httpClient, updateUI, controller.signal);
 
     updateUI();
     fetchCart(httpClient, state, updateUI, controller.signal);
@@ -83,18 +82,26 @@ async function removeItem(
     itemId: string | number,
     httpClient: HttpClient,
     state: CartViewState,
-    updateUI: () => void
+    updateUI: () => void,
+    signal: AbortSignal
 ) {
-    state.deletingItemId = itemId;
+    state.deletingItemIds.add(itemId);
+
     updateUI();
 
     try {
-        await httpClient.request(`/api/v1/cart/items/${itemId}`, { method: "DELETE" });
+        await httpClient.request(`/api/v1/cart/items/${itemId}`, { method: "DELETE", signal });
         state.items = state.items.filter(item => item.id !== itemId);
     } catch (error: any) {
-        alert(`Failed to delete item ${error.message}`);
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+            alert(`Failed to delete item ${error.message}`);
+        }
     } finally {
-        state.deletingItemId = null;
+        state.deletingItemIds.delete(itemId);
+
+        if (signal.aborted) {
+            return 
+        }
         updateUI();
     }
 }
@@ -104,10 +111,11 @@ function render(
     container: HTMLElement,
     state: CartViewState,
     httpClient: HttpClient,
-    updateUI: () => void
+    updateUI: () => void,
+    signal: AbortSignal
 ) {
     renderAsyncState(container, state, (cont, validState) => {
-
+        
         if (validState.items.length === 0) {
             const emptyMsg = createElement("h2", {}, ["Bag is empty"]);
             cont.appendChild(emptyMsg);
@@ -122,7 +130,7 @@ function render(
         const itemText = `${item.name} | amount: ${item.quantity} | ${item.price * item.quantity} $`;
         const textSpan = createElement("span", {}, [itemText])
 
-        const isDeleting = state.deletingItemId === item.id;
+        const isDeleting = state.deletingItemIds.has(item.id);
 
         const deleteBtn = createElement("button",
             isDeleting ? { disabled: "true" } : {},
@@ -130,7 +138,7 @@ function render(
     );
 
         deleteBtn.onclick = () => {
-            removeItem(item.id, httpClient, state, updateUI);
+            removeItem(item.id, httpClient, state, updateUI, signal);
         };
         
         const itemElement = createElement("div", { class: "cart-item", style: "border: 1px solid #ccc; padding: 8px; margin-bottom: 8px; display: flex; justify-content: space-between;"}, [textSpan, deleteBtn]
