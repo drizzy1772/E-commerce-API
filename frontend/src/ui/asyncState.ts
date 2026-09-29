@@ -11,10 +11,7 @@ export interface AsyncState{
 }
 
 export function renderAsyncState<T extends AsyncState>(
-    container: HTMLElement,
-    state: T,
-    renderSuccess: (container: HTMLElement, state: T) => void
-): void {
+container: HTMLElement, loading: boolean, error: string | null, p0: () => HTMLElement, state: T, renderSuccess: (container: HTMLElement, state: T) => void): void {
     container.replaceChildren();
 
     if (state.loading) {

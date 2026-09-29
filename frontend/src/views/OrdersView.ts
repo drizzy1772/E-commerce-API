@@ -106,7 +106,7 @@ function render(container: HTMLElement, state: OrdersViewState) {
             return;
         }
 
-        const list = createElement("div", { class: { "orders-list" } })
+        const list = createElement("div", { class: "orders-list" });
 
         for (const order of validState.orders) {
             const card = createOrderCard(order);

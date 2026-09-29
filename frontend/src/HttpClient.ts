@@ -26,7 +26,7 @@ export class NetworkError extends Error {
     }
 }
 
-export class HttpClient {
+export default class HttpClient {
     private authManager: AuthManager;
     constructor(authManager: AuthManager) {
         this.authManager = authManager;
@@ -61,18 +61,31 @@ export class HttpClient {
         }
             
             if (!response.ok) {
+
                 let errorMessage = `HTTP Error ${response.status}`;
                 let errorData = null;
 
                 const contentType = response.headers.get("content-type");
                 if (contentType && contentType.includes("application/json")) {
-                    errorData = await response.json();
-                    errorMessage = errorData?.detail || JSON.stringify(errorData);
-
-                    
-
+                    errorData = await response.json().catch(() => null);
                 }
-                throw new HttpError(response.status, errorMessage, errorData);
+
+                //if it is a massive
+                if (errorData) {
+                    if (Array.isArray(errorData.detail)) {
+                        errorMessage = errorData.detail.map((err: any) => err.msg).join(", ");
+                    }
+                    
+                    else if (typeof errorData.detail === "string") {
+                        errorMessage = errorData.detail;
+                    }
+
+                    else {
+                        errorMessage = JSON.stringify(errorData);
+                    }
+                }
+
+                throw new HttpError(response.status, errorMessage);
             }
 
             if (response.status === 204) {

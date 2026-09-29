@@ -40,9 +40,10 @@ export function UsersView (
         deactivatingUserIds: new Set(),
     }
 
-    const updateUI = () => render(container, state, httpClient, updateUI, controller.signal);
+    const updateUI = () => render(container, state, httpClient, updateUI);
 
     updateUI();
+
     fetchUsers(httpClient, state, updateUI, controller.signal);
 
     return () => {
@@ -92,32 +93,23 @@ async function deactivateUser(
     userId: string | number,
     httpClient: HttpClient,
     state: UsersViewState,
-    updateUI: () => void,
-    signal: AbortSignal
+    updateUI: () => void
 ) {
 
     state.deactivatingUserIds.add(userId);
     updateUI();
     
     try {
-    await httpClient.request(`/api/v1/users/${userId}/deactivate`, { method: 'PATCH', signal });
+    await httpClient.request(`/api/v1/users/${userId}/deactivate`, { method: 'PATCH' });
 
         const user = state.users.find(u => u.id === userId)
         if (user) { 
             user.isActive = false;
         }
     } catch (error: any) {
-        if (!(error instanceof DOMException && error.name === "AbortError")) {
             alert(`Failed to deactivate user: ${error.message}`);
-        }
-
         } finally {
             state.deactivatingUserIds.delete(userId);
-
-            if (signal.aborted) {
-                return;
-            }
-
             updateUI();
         }
     }
@@ -126,8 +118,7 @@ function render(
     container: HTMLElement,
     state: UsersViewState,
     httpClient: HttpClient,
-    updateUI: () => void,
-    signal: AbortSignal
+    updateUI: () => void
 ) {
     renderAsyncState(container, state, (cont, validState) => {
         if (validState.users.length === 0) {
@@ -143,40 +134,37 @@ function render(
             const textContent = `Name: ${user.name} | Email: ${user.email} | Status: ${user.isActive ? 'Active' : 'Inactive'}`;
             const textSpan = createElement("span", {}, [textContent]);
 
-        const isButtonDeactivated = state.deactivatingUserIds.has(user.id);
-        const isAlreadyDeactivated = !user.isActive;
-        const isDisabled = isButtonDeactivated || isAlreadyDeactivated;
+            const isButtonDeactivated = state.deactivatingUserIds.has(user.id);
+            const isAlreadyDeactivated = !user.isActive;
+            const isDisabled = isButtonDeactivated || isAlreadyDeactivated;
 
-        let buttonText = "Deactivate";
-        if (isDisabled) {
-            buttonText = isAlreadyDeactivated ? 'Deactivated' : 'Deactivating...';
-        }
+            let buttonText = "Deactivate";
+            if (isDisabled) {
+                buttonText = isAlreadyDeactivated ? 'Deactivated' : 'Deactivating...';
+            }
 
-        const deactivateBtn = createElement(
-            "button",
-            isDisabled ? { disabled: "true" } : {},
-                [buttonText]
-        );
+            const btnAttrs: any = {};
+            if (isDisabled) {
+                btnAttrs.disabled = true;
+            } else {
+                btnAttrs.onclick = () => deactivateUser(user.id, httpClient, state, updateUI);
+            }
             
+            const deactivateBtn = createElement("button", btnAttrs, [buttonText]);
 
-        if (!isDisabled) {
-            deactivateBtn.onclick = () => {
-                deactivateUser(user.id, httpClient, state, updateUI, signal);
-            };
-        }
+                const userItem = createElement(
+                    "div",
+                    {
+                        class: 'user-item',
+                        style: 'border: 1px solid #ccc; padding: 8px; margin-bottom: 8px; display: flex; justify-content: space-between;'
+                    },
+                    [textSpan, deactivateBtn]
+                );
 
-            const userItem = createElement(
-                "div",
-                {
-                    class: 'user-item',
-                    style: 'border: 1px solid #ccc; padding: 8px; margin-bottom: 8px; display: flex; justify-content: space-between;'
-                },
-                [textSpan, deactivateBtn]
-            );
-
-            list.appendChild(userItem);
-        }
-    
+                list.appendChild(userItem);
+            
+            }
             cont.appendChild(list);
+
         });
-    }
+    }   

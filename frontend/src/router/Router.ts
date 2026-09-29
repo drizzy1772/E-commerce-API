@@ -26,6 +26,16 @@ export default class Router{
                 this.navigate("/login");
             }
         });
+
+        document.body.addEventListener('click', (e: MouseEvent) => {
+            const target = e.target as Element;
+            const link = target.closest("a[data-link]") as HTMLAnchorElement;
+
+            if (link &&!e.ctrlKey  && !e.metaKey && e.button === 0) {
+                e.preventDefault();
+                this.navigate(link.pathname);
+            }
+        })
     }
 
         register(route: RouteDefinition): void {
@@ -37,20 +47,21 @@ export default class Router{
             return this.routes.find(route => route.path === normalizedPath);
         }
 
-        navigate(path: string, skipPushState = false): void {
+        navigate(path: string, skipPushState = false, replaceState = false): void {
             const route = this.resolve(path);
             const authState = this.authManager.getState();
 
             if (route && route.requiresAuth && !authState.isAuthenticated) {
-                this.navigate("/login");
+                this.navigate("/login", false, true);
                 return;
             }
-            
+
             // 404 error work
             if (route && route.allowedRoles) {
                 if (!authState.role || !route.allowedRoles.includes(authState.role)) {
                     console.warn("403 Forbidden");
-                    this.navigate("/");
+
+                    this.navigate("/", false, true);
                     return;
                 }  
             }
@@ -65,7 +76,11 @@ export default class Router{
             }
 
             if (!skipPushState && path !== window.location.pathname) {
-                window.history.pushState({}, "", path);  
+                if (replaceState === true) {
+                    window.history.replaceState({}, "", path);
+                } else {
+                    window.history.pushState({}, "", path);
+                }
             }
 
             if (this.currentUnmount) {
