@@ -54,7 +54,7 @@ async function fetchCart(
     signal: AbortSignal
 ) {
     try {
-        const data = await httpClient.request<CartItem[]>("/api/v1/cart/items", { signal });
+        const data = await httpClient.request<CartItem[]>("/cart/items", { signal });
         state.items = data;
         state.loading = false;
         updateUI();
@@ -91,7 +91,7 @@ async function removeItem(
     updateUI();
 
     try {
-        await httpClient.request(`/api/v1/cart/items/${itemId}`, { method: "DELETE" });
+        await httpClient.request(`/cart/items/${itemId}`, { method: "DELETE" });
         state.items = state.items.filter(item => item.id !== itemId);
     } catch (error: any) {
             alert(`Failed to delete item ${error.message}`);
@@ -151,4 +151,3 @@ function render(
     cont.appendChild(list);
     });
 }
-

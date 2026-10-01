@@ -59,7 +59,7 @@ async function fetchUsers(
     signal: AbortSignal
 ) {
     try {
-        const users = await httpClient.request<User[]>("/api/v1/users", { signal });
+        const users = await httpClient.request<User[]>("/users", { signal });
 
         state.users = users;
 
@@ -100,7 +100,7 @@ async function deactivateUser(
     updateUI();
     
     try {
-    await httpClient.request(`/api/v1/users/${userId}/deactivate`, { method: 'PATCH' });
+    await httpClient.request(`/users/${userId}/deactivate`, { method: 'PATCH' });
 
         const user = state.users.find(u => u.id === userId)
         if (user) { 

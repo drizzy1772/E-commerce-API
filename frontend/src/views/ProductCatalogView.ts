@@ -2,7 +2,7 @@
 
 
 
-import HttpClient from "../api/HttpClient";
+import { HttpClient } from "../api/HttpClient";
 import Router from "../router/Router";
 import { createElement } from "../ui/dom"
 import { renderAsyncState } from "../ui/asyncState";
@@ -54,11 +54,12 @@ export function ProductCatalogView(
         return;
     }
 
-    renderAsyncState(container, state.loading, state.error, () => {
+    renderAsyncState(container, state, () => {
             if (state.products.length === 0) {
                 const emptyMsg = document.createElement("div");
                 emptyMsg.textContent = "No products available.";
-                return emptyMsg;
+                container.appendChild(emptyMsg);
+                return;
             }
 
             const productsContainer = createElement('div', { class: "products-grid "});
@@ -68,13 +69,13 @@ export function ProductCatalogView(
                 productsContainer.appendChild(productCard);
             });
 
-            return productsContainer;
+            container.appendChild(productsContainer);
         });
         }
 
         async function fetchProducts() {
             try {
-                const response = await httpClient.request<PaginatedResponse<Product>>('/products/', {
+                const response = await httpClient.request<PaginatedResponse<Product>>('/api/v1/products/', {
                     signal: abortController.signal 
                 });
                 
@@ -146,7 +147,7 @@ export function ProductCatalogView(
                 updateUI();
         
                 try {
-                    await httpClient.request("/cart/items", {
+                    await httpClient.request("/api/v1/cart/items", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ product_id: product.id, quantity: 1})

@@ -11,9 +11,12 @@ export interface AsyncState{
 }
 
 export function renderAsyncState<T extends AsyncState>(
-container: HTMLElement, loading: boolean, error: string | null, p0: () => HTMLElement, state: T, renderSuccess: (container: HTMLElement, state: T) => void): void {
-    container.replaceChildren();
-
+    container: HTMLElement,
+    state: T,
+    renderSuccess: () => void
+    ): void {
+        container.replaceChildren();
+    
     if (state.loading) {
         const loadingHeader = createElement("h2", {}, ["Loading..."]);
         container.appendChild(loadingHeader);
@@ -26,5 +29,5 @@ container: HTMLElement, loading: boolean, error: string | null, p0: () => HTMLEl
     container.appendChild(errorHead);
     return;
     }
-    renderSuccess(container, state);
+    renderSuccess();
 }

@@ -10,7 +10,7 @@ import { LoginView } from "./views/LoginView";
 import { DashboardView } from "./views/DashboardView";
 import { renderNavBar } from "./components/NavBar";
 import { OrdersView } from "./views/OrdersView";
-import HttpClient from "./api/HttpClient";
+import { HttpClient } from "./api/HttpClient";
 import { CartItemsView } from "./views/CartItemsView";
 import { UsersView } from "./views/UsersView";
 import { ProductCatalogView } from "./views/ProductCatalogView";

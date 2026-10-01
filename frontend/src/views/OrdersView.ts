@@ -3,10 +3,10 @@
 
 
 
-import HttpClient, { HttpError, NetworkError } from "../api/HttpClient";
+import HttpClient from "../api/HttpClient";
 import Router from "../router/Router";
-import { renderAsyncState } from "../ui/asyncState";
 import { createElement } from "../ui/dom";
+import { renderAsyncState } from "../ui/asyncState";
 
 //my first order
 interface Order {
@@ -76,9 +76,9 @@ export function OrdersView(
                 return;
             }
 
-            if (error instanceof HttpError) {
+            if (error.status) {
                 state.error = `Server Error [${error.status}]: ${error.message}`;
-            } else if (error instanceof NetworkError) {
+            } else if (error.name === "NetworkError") {
                 state.error = "Network Error: Please check your internet connection.";
             } else {
                 state.error = error.message;
@@ -99,20 +99,20 @@ function createOrderCard(order: Order): HTMLElement {
 
 //watch for a state and give an HTML
 function render(container: HTMLElement, state: OrdersViewState) {
-    renderAsyncState(container, state, (cont, validState) => {
-        if (validState.orders.length === 0) {
+    renderAsyncState(container, state, () => {
+        if (state.orders.length === 0) {
             const createOrders = createElement("h2", {}, [`You didn't have orders right now`]);
-            cont.appendChild(createOrders);
+            container.appendChild(createOrders);
             return;
         }
 
         const list = createElement("div", { class: "orders-list" });
 
-        for (const order of validState.orders) {
+        for (const order of state.orders) {
             const card = createOrderCard(order);
             list.appendChild(card);
 
         }
-        cont.appendChild(list);
+        container.appendChild(list);
     });
     }
