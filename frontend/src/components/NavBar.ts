@@ -3,7 +3,7 @@
 
 import AuthManager from '../auth/Auth';
 
-export function renderNavBar(container: HTMLElement, authManager: AuthManager) {
+export function renderNavBar(container: HTMLElement, authManager: AuthManager, links: any = []) {
     const updateDOM = () => {
         const state = authManager.getState();
     
@@ -23,6 +23,8 @@ export function renderNavBar(container: HTMLElement, authManager: AuthManager) {
         <nav class="navbar">
                 <strong>E-Commerce API</strong>
                 <div class="nav-links">
+                    <a href="/cart" data-link>Cart</a>
+                    <a href="/products" data-link>Catalog</a>
                     <a href="/" data-link>Dashboard</a>
                     <a href="/orders" data-link>Orders</a>
     `;

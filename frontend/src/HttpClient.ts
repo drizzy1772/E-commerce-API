@@ -74,13 +74,9 @@ export class HttpClient {
                 if (errorData) {
                     if (Array.isArray(errorData.detail)) {
                         errorMessage = errorData.detail.map((err: any) => err.msg).join(", ");
-                    }
-                    
-                    else if (typeof errorData.detail === "string") {
+                    } else if (typeof errorData.detail === "string") {
                         errorMessage = errorData.detail;
-                    }
-
-                    else {
+                    } else {
                         errorMessage = JSON.stringify(errorData);
                     }
                 }

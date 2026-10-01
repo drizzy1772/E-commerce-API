@@ -61,7 +61,7 @@ export function OrdersView(
         signal: AbortSignal
     ) {
         try {
-            const data = await httpClient.request<Order[]>("/api/v1/orders/", { signal });
+            const data = await httpClient.request<Order[]>("/orders", { signal });
 
         
             state.orders = data;

@@ -33,6 +33,7 @@ const httpClient = new HttpClient(authManager);
 
 const NAV_LINKS = [
   { path: "/orders", label: "Orders"},
+  { path: "/catalog", label: "Catalog"},
   { path: "/cart", label: "Cart"},
   { path: "/users", label: "Users", allowedRoles: ["admin"]},
   { path: "/products", label: "Catalog" }

@@ -54,8 +54,8 @@ async function fetchCart(
     signal: AbortSignal
 ) {
     try {
-        const data = await httpClient.request<CartItem[]>("/cart/items", { signal });
-        state.items = data;
+        const data = await httpClient.request<any>("/cart", { signal });
+        state.items = Array.isArray(data) ? data : (data.items || []);
         state.loading = false;
         updateUI();
     } catch (error: any) {
@@ -108,18 +108,18 @@ function render(
     httpClient: HttpClient,
     updateUI: () => void,
 ) {
-    renderAsyncState(container, state, (cont, validState) => {
+    renderAsyncState(container, state, () => {
         
-        if (validState.items.length === 0) {
+        if (state.items.length === 0) {
             const emptyMsg = createElement("h2", {}, ["Bag is empty"]);
-            cont.appendChild(emptyMsg);
+            container.appendChild(emptyMsg);
             return
         }
 
         const list = createElement("div", { class: "cart-list" });
 
         
-    for (const item of validState.items) {
+    for (const item of state.items) {
 
         const itemText = `${item.name} | amount: ${item.quantity} | $${item.price * item.quantity}`;
         const textSpan = createElement("span", {}, [itemText])
@@ -148,6 +148,6 @@ function render(
 
         list.appendChild(itemElement);
     }
-    cont.appendChild(list);
+    container.appendChild(list);
     });
 }

@@ -75,7 +75,7 @@ export function ProductCatalogView(
 
         async function fetchProducts() {
             try {
-                const response = await httpClient.request<PaginatedResponse<Product>>('/api/v1/products/', {
+                const response = await httpClient.request<PaginatedResponse<Product>>('/products', {
                     signal: abortController.signal 
                 });
                 
@@ -147,7 +147,7 @@ export function ProductCatalogView(
                 updateUI();
         
                 try {
-                    await httpClient.request("/api/v1/cart/items", {
+                    await httpClient.request("/cart/items", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ product_id: product.id, quantity: 1})
