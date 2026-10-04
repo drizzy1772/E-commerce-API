@@ -4,8 +4,7 @@
 
 
 
-import HttpClient, { HttpError, NetworkError } from "../api/HttpClient";
-import Router from "../router/Router";
+import { HttpClient, HttpError, NetworkError } from "../api/HttpClient";
 import { createElement } from "../ui/dom";
 import { renderAsyncState } from "../ui/asyncState";
 
@@ -29,7 +28,6 @@ export interface UsersViewState {
 export function UsersView (
     container: HTMLElement,
     httpClient: HttpClient,
-    router: Router
 ): () => void {
     const controller = new AbortController();
 

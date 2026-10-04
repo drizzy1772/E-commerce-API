@@ -49,7 +49,12 @@ async def auth_login(
     if not db_user or not verify_password(form_data.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="invalid credentials")
     
-    token = create_access_token(data={"sub": db_user.email})
+    token = create_access_token(
+        data={
+            "sub": db_user.email,
+            "role": db_user.role,
+        }
+    )
     refresh_token = await create_refresh_token(db, db_user.id)
     return Token(access_token=token, refresh_token=refresh_token, token_type="bearer")
 
@@ -72,7 +77,12 @@ async def autho_refresh(
     
     result = await db.execute(select(User).where(User.id == token.user_id))
     user = result.scalar_one_or_none()
-    access_token = create_access_token(data={"sub": user.email})
+    access_token = create_access_token(
+        data={
+            "sub": user.email,
+            "role": user.role,
+        }
+    )
     refresh_token = await create_refresh_token(db, token.user_id)
     return Token(access_token=access_token, refresh_token=payload.refresh_token, token_type="bearer")
 

@@ -13,7 +13,7 @@ export interface AsyncState{
 export function renderAsyncState<T extends AsyncState>(
     container: HTMLElement,
     state: T,
-    renderSuccess: () => void
+    renderSuccess: (container: HTMLElement, validState: T) => void
     ): void {
         container.replaceChildren();
     
@@ -24,10 +24,10 @@ export function renderAsyncState<T extends AsyncState>(
     }
 
     if (state.error !== null) {
-    const errorHead = createElement("h2", { "style": "color: red;" }, [`Error: ${state.error}`]);
-    
-    container.appendChild(errorHead);
-    return;
+        const errorHead = createElement("h2", { "style": "color: red;" }, [`Error: ${state.error}`]);
+        container.appendChild(errorHead);
+        return;
     }
-    renderSuccess();
+
+    renderSuccess(container, state);
 }

@@ -34,4 +34,11 @@ async def get_products(db, search=None, category_id=None, min_price=None, max_pr
     items = await product_repository.get_products(db, query)
     return items, total
 
-    
+async def create_product(db, product_data):
+    product = Product(**product_data.model_dump())
+
+    db.add(product)
+    await db.commit()
+    await db.refresh(product)
+
+    return product

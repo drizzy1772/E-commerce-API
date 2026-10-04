@@ -4,7 +4,6 @@
 
 
 import HttpClient from "../api/HttpClient";
-import Router from "../router/Router";
 import { createElement } from "../ui/dom";
 import { renderAsyncState } from "../ui/asyncState";
 
@@ -29,7 +28,6 @@ interface OrdersViewState {
 export function OrdersView(
     container: HTMLElement,
     httpClient: HttpClient,
-    router: Router
 ): () => void {
 
     const controller = new AbortController();

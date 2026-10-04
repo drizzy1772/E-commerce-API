@@ -3,7 +3,7 @@
 
 import AuthManager from '../auth/Auth';
 
-export function renderNavBar(container: HTMLElement, authManager: AuthManager, links: any = []) {
+export function renderNavBar(container: HTMLElement, authManager: AuthManager, _links: any = []) {
     const updateDOM = () => {
         const state = authManager.getState();
     
@@ -29,9 +29,14 @@ export function renderNavBar(container: HTMLElement, authManager: AuthManager, l
                     <a href="/orders" data-link>Orders</a>
     `;
 
-    if (state.role === 'ADMIN') {
+    if (state.role === "admin") {
         navHtml += `
-                <a href="/users" data-link class="admin-link">Users (Admin)</a>
+                <a href="/users" data-link class="admin-link">
+                    Users (Admin)
+                </a>
+                <a href="/admin/products" data-link class="admin-link">
+                    Create Product
+                </a>
         `;
     }
 

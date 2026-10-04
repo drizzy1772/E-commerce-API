@@ -21,7 +21,7 @@ class Product(BaseModel):
     description: str
     price: float
     stock: int
-    is_active: bool
+    is_active: bool = True
     category_id: int
     
 class ProductCreate(Product):

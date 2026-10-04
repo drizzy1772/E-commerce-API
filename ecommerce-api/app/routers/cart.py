@@ -45,10 +45,9 @@ async def get_cart_items(
 
         response_data.append(cart_item_dict)
 
-    return {
-        "items": response_data,
-        "total": len(response_data),
-        "has_next": False}
+    return response_data
+
+
 
 @router.post("/items", response_model=CartResponse)
 async def add_items(

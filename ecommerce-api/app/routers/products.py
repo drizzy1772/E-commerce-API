@@ -5,10 +5,12 @@ from fastapi import HTTPException
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.schemas import ProductResponse, PaginatedResponse
-from app.services.product_service import get_products
+from app.schemas.schemas import ( ProductCreate, ProductResponse, PaginatedResponse )
+from app.services.product_service import ( get_products, create_product )
 from fastapi_cache.decorator import cache
 import logging
+from app.models.models import User
+from app.services.auth_service import require_admin
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +42,11 @@ async def read_items(
         has_next=has_next
     )
 
-
-
-
+@router.post("/", response_model=ProductResponse)
+async def create_product_route(
+    product_in: ProductCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    new_product = await create_product(db, product_in)
+    return new_product

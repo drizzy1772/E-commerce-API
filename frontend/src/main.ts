@@ -14,7 +14,7 @@ import { HttpClient } from "./api/HttpClient";
 import { CartItemsView } from "./views/CartItemsView";
 import { UsersView } from "./views/UsersView";
 import { ProductCatalogView } from "./views/ProductCatalogView";
-
+import { AdminProductCreateView } from "./views/AdminProductCreateView";
 
 
 const container = document.getElementById('app');
@@ -33,11 +33,15 @@ const httpClient = new HttpClient(authManager);
 
 const NAV_LINKS = [
   { path: "/orders", label: "Orders"},
-  { path: "/catalog", label: "Catalog"},
   { path: "/cart", label: "Cart"},
   { path: "/users", label: "Users", allowedRoles: ["admin"]},
-  { path: "/products", label: "Catalog" }
-]
+  {
+    path: "/admin/products",
+    label: "Create Product",
+    allowedRoles: ["admin"],
+  },
+  { path: "/products", label: "Catalog"},
+];
 
 renderNavBar(navContainer, authManager, NAV_LINKS);
 
@@ -57,7 +61,7 @@ router.register({
 router.register({
   path: "/orders",
   requiresAuth: true,
-  view: (container: HTMLElement) => OrdersView(container, httpClient, router)
+  view: (container: HTMLElement) => OrdersView(container, httpClient)
 });
 
 
@@ -69,16 +73,27 @@ router.register({
 
 
 router.register({
-  path: "/users",
+  path: "/products",
   requiresAuth: true,
-  allowedRoles: ["admin"],
-  view: (container: HTMLElement) => UsersView(container, httpClient, router)
+  view: (container: HTMLElement) => 
+    ProductCatalogView(container, httpClient),
 });
 
 router.register({
-  path: "/products",
+  path: "/users",
   requiresAuth: true,
-  view: (container: HTMLElement) => ProductCatalogView(container, httpClient, router)
+  allowedRoles: ["admin"],
+  view: (container: HTMLElement) => UsersView(container, httpClient)
+});
+
+
+
+router.register({
+  path: "/admin/products",
+  requiresAuth: true,
+  allowedRoles: ["admin"],
+  view: (container: HTMLElement) => 
+    AdminProductCreateView(container)
 });
 
 router.start();
