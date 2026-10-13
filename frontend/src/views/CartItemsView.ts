@@ -27,6 +27,7 @@ export function CartItemsView (
     httpClient: HttpClient,
     router: Router
 ): () => void {
+    let isMounted = true;
     const controller = new AbortController();
 
     const state: CartViewState = {
@@ -37,12 +38,16 @@ export function CartItemsView (
         deletingItemIds: new Set(),
     };
 
-    const updateUI = () => render(container, state, httpClient, updateUI, router);
+    const updateUI = () => {
+        if (!isMounted) return;
+        render(container, state, httpClient, updateUI, router);
+    };
 
     updateUI();
     fetchCart(httpClient, state, updateUI, controller.signal);
 
     return () => {
+        isMounted = false;
         controller.abort();
     };
 }
@@ -59,7 +64,6 @@ async function fetchCart(
         state.loading = false;
         updateUI();
     } catch (error: any) {
-
         if (error instanceof DOMException && error.name === "AbortError") {
             return;
         }
@@ -81,10 +85,10 @@ async function fetchCart(
 //logic of deleting Wait-for-response
 
 async function removeItem(
-    itemId: string | number,
     httpClient: HttpClient,
     state: CartViewState,
     updateUI: () => void,
+    itemId: string | number,
 ) {
     state.deletingItemIds.add(itemId);
 
@@ -94,10 +98,15 @@ async function removeItem(
         await httpClient.request(`/cart/items/${itemId}`, { method: "DELETE" });
         state.items = state.items.filter(item => item.id !== itemId);
     } catch (error: any) {
-            alert(`Failed to delete item ${error.message}`);
+        if (error instanceof HttpError) {
+            alert(`Failed to remove item [${error.status}]: ${error.message}`);
+        } else if (error instanceof NetworkError) {
+                alert("Network Error: Could not remove item. Please check connection.");
+        } else {
+            alert(error.message);
+        }
     } finally {
         state.deletingItemIds.delete(itemId);
-
         updateUI();
     }
 }
@@ -105,8 +114,8 @@ async function removeItem(
 async function checkout(
     httpClient: HttpClient,
     state: CartViewState,
-    router: Router,
     updateUI: () => void,
+    router: Router,
 ) {
     if (state.isCheckingOut || state.items.length === 0) {
         return;
@@ -116,28 +125,27 @@ async function checkout(
     updateUI();
 
     try {
-    const idempotencyKey = crypto.randomUUID();
-    await httpClient.request("/orders/",{ 
-        method: "POST",
-        headers: { "Idempotency-Key": idempotencyKey }
-    });
+        const idempotencyKey = crypto.randomUUID();
+        await httpClient.request("/orders/", {
+            method: "POST",
+            headers: { "Idempotency-Key": idempotencyKey }
+        });
 
-    router.navigate("/orders");
-} catch (error: any) {
+        router.navigate("/orders");
+    } catch (error: any) {
+        state.isCheckingOut = false;    
+
         if (error instanceof HttpError) {
-            alert(`Server error [${error.status}]: ${error.message}`);
+            alert(`Checkout failed [${error.status}]: ${error.message}`);
         } else if (error instanceof NetworkError) {
-            alert(`Network Error: Please check your internet connection`);
+            alert("Network Error: Checkout failed. Please check connection.");
         } else {
             alert(error.message);
         }
 
-        state.isCheckingOut = false;
         updateUI();
     }
 }
-
-
 
 function render(
     container: HTMLElement,
@@ -146,64 +154,52 @@ function render(
     updateUI: () => void,
     router: Router,
 ) {
-    renderAsyncState(container, state, (cont: HTMLElement, validState: CartViewState) => {
-        
+    renderAsyncState(container, state, (cont, validState) => {
         if (validState.items.length === 0) {
-            const emptyMsg = createElement("h2", {}, ["Bag is empty"]);
+            const emptyMsg = createElement("h2", {}, ["Cart is empty"]);
             cont.appendChild(emptyMsg);
             return
         }
 
         const list = createElement("div", { class: "cart-list" });
+        let totalAmount = 0;
 
         
-    for (const item of validState.items) {
+        for (const item of validState.items) {
+            totalAmount += item.price * item.quantity;
 
-        const itemText = `${item.name} | amount: ${item.quantity} | $${item.price * item.quantity}`;
-        const textSpan = createElement("span", {}, [itemText])
+        const nameSpan = createElement("span", {}, [`${item.name} (x${item.quantity})`]);
+        const priceSpan = createElement("span", {}, [`$${item.price * item.quantity}`]);
+        const infoContainer = createElement("div", {}, [nameSpan, priceSpan]);
 
-        const isDeleting = state.deletingItemIds.has(item.id);
+        const isDeleting = validState.deletingItemIds.has(item.id);
+        const removeBtn = createElement("button", {
+            class: "btn",
+            disabled: isDeleting || validState.isCheckingOut ? true : undefined
+        }, [isDeleting ? "Removing..." : "Remove"]);
 
-        const btnAttrs: any = {};
-        if (isDeleting) {
-            btnAttrs.disabled = true;
-        } else {
-            btnAttrs.onclick = () => removeItem(item.id, httpClient, state, updateUI);
-        }
-        const deleteBtn = createElement(
-            "button",
-            btnAttrs,
-            [isDeleting ? "Deleting..." : "Delete"]
-        );
+        removeBtn.addEventListener('click', () => {
+            removeItem(httpClient, validState, updateUI, item.id);
+        });
 
-        const itemElement = createElement(
-            "div",
-            { class: "cart-item",
-              style: "border: 1px solid #ccc; padding: 8px; margin-bottom: 8px; display: flex; justify-content: space-between;"
-            },
-            [textSpan, deleteBtn]
-        );
-
-        list.appendChild(itemElement);
+        const itemRow = createElement("div", { class: 'list-row' }, [infoContainer, removeBtn]);
+        list.appendChild(itemRow);
     }
+
+    const totalHeader = createElement("h3", {}, [`Total: $${totalAmount}`]);
+
+    const checkoutBtn = createElement("button", {
+        class: "btn btn-primary",
+        disabled: validState.isCheckingOut ? true : undefined
+    }, [validState.isCheckingOut ? "Processing..." : "Checkout"]);
+
+    
+    checkoutBtn.addEventListener("click", () => {
+        checkout(httpClient, validState, updateUI, router);
+    });
+
     cont.appendChild(list);
-
-
-    const checkoutBtnAttrs: any = { 
-        style: "margin-top: 20px; padding: 10px 20px; font-weight: bold; cursor: pointer;"
-    };
-
-    if (validState.isCheckingOut) {
-        checkoutBtnAttrs.disabled = true;
-    } else {
-        checkoutBtnAttrs.onclick = () => checkout(httpClient, state, router, updateUI);
-    }
-
-    const checkoutBtn = createElement(
-        "button",
-        checkoutBtnAttrs,
-        [validState.isCheckingOut ? "Processing..." : "Checkout"]);
-
+    cont.appendChild(totalHeader);
     cont.appendChild(checkoutBtn);
     });
 }

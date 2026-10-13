@@ -2,14 +2,8 @@
 
 
 
-import type { HttpClient } from "../api/HttpClient";
+import { HttpClient, HttpError, NetworkError } from "../api/HttpClient";
 import { createElement } from "../ui/dom";
-
-
-
-
-
-
 
 export function AdminProductCreateView(
     container: HTMLElement,
@@ -17,7 +11,9 @@ export function AdminProductCreateView(
 ): () => void {
     const form = createElement("form", {
         "class": "admin-product-form",
-    });
+    }) as HTMLFormElement;
+
+    let isSubmitting = false;
     const title = createElement("h1", {}, ["Create Product"]);
 
     form.append(title);
@@ -43,6 +39,7 @@ export function AdminProductCreateView(
         name: "price",
         type: "number",
         min: "0.01",
+        max: "99999999.99",
         step: "0.01",
         placeholder: "Price",
         required: true,
@@ -88,13 +85,18 @@ export function AdminProductCreateView(
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
+        if (isSubmitting) {
+            return;
+        }
+
+
         const name = nameInput.value.trim();
         const productDescription = description.value.trim();
         const price = Number(priceInput.value);
         const stock = Number(stockInput.value);
         const categoryId = Number(categoryInput.value);
         
-        if (!name || name.trim() === "") {
+        if (!name) {
             message.textContent = "The name is empty";
             return;
         } else if (productDescription === "") {
@@ -103,13 +105,24 @@ export function AdminProductCreateView(
         } else if (Number.isNaN(price) || price <= 0) {
             message.textContent = "the price is none";
             return;
+
+        } else if (price > 99999999.99) {
+            message.textContent = "Price is too large";
+            return;
+
         } else if (Number.isNaN(stock) || stock < 0) {
             message.textContent = "the stock is none";
             return;
+            
         } else if (Number.isNaN(categoryId) || categoryId < 1) {
             message.textContent = "categoryId is empty";
             return;
         } 
+
+
+        isSubmitting = true;
+        submitButton.disabled = true;
+
         try {
             await httpClient.request("/products/", {
                 method: 'POST',
@@ -127,10 +140,20 @@ export function AdminProductCreateView(
 
         
         message.textContent = "Product created successfully!";
-        } catch (error) {
-            message.textContent = "Could not create product.";
-        }
+        form.reset();
 
+        } catch (error) {
+            if (error instanceof HttpError) {
+                message.textContent = error.message;   
+            } else if (error instanceof NetworkError) {
+                message.textContent = "Network error. Please try again.";
+            } else {
+                message.textContent = "Could not create product.";
+            }
+        } finally {
+            isSubmitting = false;
+            submitButton.disabled = false;
+        }
     });
 
 

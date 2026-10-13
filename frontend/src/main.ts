@@ -3,7 +3,7 @@
 
 
 
-
+import "./styles/tokens.css";
 import AuthManager from "./auth/Auth";
 import Router from "./router/Router";
 import { LoginView } from "./views/LoginView";
@@ -31,19 +31,7 @@ const router = new Router(authManager, container);
 const httpClient = new HttpClient(authManager);
 
 
-const NAV_LINKS = [
-  { path: "/orders", label: "Orders"},
-  { path: "/cart", label: "Cart"},
-  { path: "/users", label: "Users", allowedRoles: ["admin"]},
-  {
-    path: "/admin/products",
-    label: "Create Product",
-    allowedRoles: ["admin"],
-  },
-  { path: "/products", label: "Catalog"},
-];
-
-renderNavBar(navContainer, authManager, NAV_LINKS);
+renderNavBar(navContainer, authManager);
 
 router.register({
   path: "/login",
@@ -76,7 +64,7 @@ router.register({
   path: "/products",
   requiresAuth: true,
   view: (container: HTMLElement) => 
-    ProductCatalogView(container, httpClient),
+    ProductCatalogView(container, httpClient, router),
 });
 
 router.register({
@@ -93,7 +81,7 @@ router.register({
   requiresAuth: true,
   allowedRoles: ["admin"],
   view: (container: HTMLElement) => 
-    AdminProductCreateView(container)
+    AdminProductCreateView(container, httpClient)
 });
 
 router.start();

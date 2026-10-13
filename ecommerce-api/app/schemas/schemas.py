@@ -1,10 +1,10 @@
 
 
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from app.models.models import OrderStatus
-from pydantic import BaseModel, field_validator, ValidationError, EmailStr
+from pydantic import BaseModel, field_validator, ValidationError, EmailStr, ConfigDict
 from pydantic_core import PydanticCustomError
 from typing import Generic, TypeVar
 
@@ -19,7 +19,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
 class Product(BaseModel):
     name: str
     description: str
-    price: float
+    price: float = Field(gt=0, le=99999999.99)
     stock: int
     is_active: bool = True
     category_id: int

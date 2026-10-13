@@ -2,8 +2,7 @@
 
 
 
-
-import HttpClient from "../api/HttpClient";
+import HttpClient, { HttpError, NetworkError } from "../api/HttpClient";
 import { createElement } from "../ui/dom";
 import { renderAsyncState } from "../ui/asyncState";
 
@@ -30,6 +29,7 @@ export function OrdersView(
     httpClient: HttpClient,
 ): () => void {
 
+    let isMounted = true;
     const controller = new AbortController();
     
     const state: OrdersViewState = {
@@ -38,7 +38,10 @@ export function OrdersView(
         error: null,
     };
 
-    const updateUI = () => render(container, state);
+    const updateUI = () => {
+        if (!isMounted) return;
+        render(container, state);
+    };
 
     updateUI();
 
@@ -47,6 +50,7 @@ export function OrdersView(
 
     //exit from page
     return () => {
+        isMounted = false;
         controller.abort();
     };
 }
@@ -74,9 +78,9 @@ export function OrdersView(
                 return;
             }
 
-            if (error.status) {
+            if (error instanceof HttpError) {
                 state.error = `Server Error [${error.status}]: ${error.message}`;
-            } else if (error.name === "NetworkError") {
+            } else if (error instanceof NetworkError) {
                 state.error = "Network Error: Please check your internet connection.";
             } else {
                 state.error = error.message;
@@ -87,30 +91,45 @@ export function OrdersView(
         }
     }
 
-function createOrderCard(order: Order): HTMLElement {
-
-    const cardText = `Order: ${order.id} | Status: ${order.status} | Total: ${order.total_amount} USD`
-
-    return createElement("div", { class: "order-card", style: "border: 1px solid #ccc; padding: 8px; margin-bottom: 8px;" }, [cardText])
-
-}
 
 //watch for a state and give an HTML
-function render(container: HTMLElement, state: OrdersViewState) {
-    renderAsyncState(container, state, () => {
-        if (state.orders.length === 0) {
-            const createOrders = createElement("h2", {}, [`You didn't have orders right now`]);
-            container.appendChild(createOrders);
+function render(
+    container: HTMLElement,
+    state: OrdersViewState,
+
+) {
+    renderAsyncState(container, state, (cont, validState) => {
+        if (validState.orders.length === 0) {
+            const createOrders = createElement("h2", {}, [`No orders`]);
+            cont.appendChild(createOrders);
             return;
         }
 
         const list = createElement("div", { class: "orders-list" });
 
-        for (const order of state.orders) {
-            const card = createOrderCard(order);
-            list.appendChild(card);
+        for (const order of validState.orders) {
+            const idText = `Order #${order.id}`;
+            const idSpan = createElement("span", { class: "order-id" }, [idText]);
 
+
+            const totalText = `$${order.total_amount}`;
+            const totalSpan = createElement("span", { class: "order-total" }, [totalText]);
+
+            const rowChildren = [idSpan, totalSpan];
+
+            if (order.status) {
+                const statusStamp = createElement("span", { class: "status-stamp" }, [order.status]);
+                rowChildren.push(statusStamp); 
+            }
+            
+            const orderRow = createElement(
+                "div",
+                { class: 'list-row' },
+                rowChildren
+            );
+
+            list.appendChild(orderRow);
         }
-        container.appendChild(list);
+        cont.appendChild(list);
     });
     }

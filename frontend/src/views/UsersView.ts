@@ -19,26 +19,31 @@ export interface User {
 
 export interface UsersViewState {
     users: User[];
-    loading: boolean;
+    status: 'loading' | 'success' | 'error' | 'empty';
     error: string | null;
     deactivatingUserIds: Set<string | number>;
 }
 
-//users view
+//users view    
 export function UsersView (
     container: HTMLElement,
     httpClient: HttpClient,
 ): () => void {
+    let isMounted = true;
     const controller = new AbortController();
 
     const state: UsersViewState = {
         users: [],
-        loading: true,
+        status: "loading",
         error: null,
         deactivatingUserIds: new Set(),
-    }
+    };
 
-    const updateUI = () => render(container, state, httpClient, updateUI);
+    const updateUI = () => {
+        if (!isMounted) return;
+        container.replaceChildren();
+        render(container, state, httpClient, updateUI);
+    };
 
     updateUI();
 
@@ -46,6 +51,7 @@ export function UsersView (
 
     return () => {
         controller.abort();
+        isMounted = false;
     };
 }
 
@@ -61,9 +67,13 @@ async function fetchUsers(
 
         state.users = users;
 
-        state.loading = false;
+        if (users.length === 0) {
+            state.status = 'empty'
+        } else {
+            state.status = 'success';
+    }
 
-        updateUI();
+    updateUI();
 
     } catch(error: any) {
         if (error instanceof DOMException && error.name === "AbortError") {
@@ -79,8 +89,8 @@ async function fetchUsers(
             state.error = error.message;
         }
 
-        state.loading = false;
-
+        state.status = 'error';
+        
         updateUI();
 
     }
@@ -88,25 +98,32 @@ async function fetchUsers(
 
 
 async function deactivateUser(
-    userId: string | number,
     httpClient: HttpClient,
     state: UsersViewState,
-    updateUI: () => void
+    updateUI: () => void,
+    userId: string | number,
 ) {
+
+    if (state.deactivatingUserIds.has(userId)) return;
 
     state.deactivatingUserIds.add(userId);
     updateUI();
     
     try {
-    await httpClient.request(`/users/${userId}/deactivate`, { method: 'PATCH' });
+        await httpClient.request(`/users/${userId}/deactivate`, { method: 'PATCH' });
 
-        const user = state.users.find(u => u.id === userId)
-        if (user) { 
-            user.isActive = false;
-        }
+        state.users = state.users.map(user => 
+            user.id === userId ? { ...user, isActive: false } : user
+        );
     } catch (error: any) {
+        if (error instanceof HttpError){
             alert(`Failed to deactivate user: ${error.message}`);
-        } finally {
+        } else if (error instanceof NetworkError) {
+            alert("Network Error: Could not deactivate user. Please check connection.");
+        } else {
+            alert(error.message);
+        }
+    } finally {
             state.deactivatingUserIds.delete(userId);
             updateUI();
         }
@@ -119,50 +136,42 @@ function render(
     updateUI: () => void
 ) {
     renderAsyncState(container, state, (cont, validState) => {
-        if (validState.users.length === 0) {
-            const emptyMsg = createElement("h2", {}, ["No users found"]);
-            cont.appendChild(emptyMsg);
-            return;
-        }
-
         const list = createElement("div", { class: "users-list" });
 
         for (const user of validState.users) {
+            const nameSpan = createElement("span", {}, [user.name]);
+            const emailSpan = createElement("span", {}, [user.email]);
+            const statusSpan = createElement("span", {}, [user.isActive ? 'Active' : 'Inactive']);
+            const infoContainer = createElement("div", {}, [nameSpan, emailSpan, statusSpan]);
 
-            const textContent = `Name: ${user.name} | Email: ${user.email} | Status: ${user.isActive ? 'Active' : 'Inactive'}`;
-            const textSpan = createElement("span", {}, [textContent]);
-
-            const isButtonDeactivated = state.deactivatingUserIds.has(user.id);
+            const isDeactivating = validState.deactivatingUserIds.has(user.id);
             const isAlreadyDeactivated = !user.isActive;
-            const isDisabled = isButtonDeactivated || isAlreadyDeactivated;
+            const isDisabled = isDeactivating || isAlreadyDeactivated;
 
-            let buttonText = "Deactivate";
-            if (isDisabled) {
-                buttonText = isAlreadyDeactivated ? 'Deactivated' : 'Deactivating...';
-            }
 
-            const btnAttrs: any = {};
-            if (isDisabled) {
-                btnAttrs.disabled = true;
-            } else {
-                btnAttrs.onclick = () => deactivateUser(user.id, httpClient, state, updateUI);
-            }
-            
-            const deactivateBtn = createElement("button", btnAttrs, [buttonText]);
+            const deactivateBtn = createElement("button", {
+                class : "btn",
+                disabled: isDisabled ? true : undefined
+            }, [
+                isDeactivating ? "Deactivating..." : isAlreadyDeactivated ? "Deactivated": "Deactivate"
+            ]);
 
-                const userItem = createElement(
-                    "div",
-                    {
-                        class: 'user-item',
-                        style: 'border: 1px solid #ccc; padding: 8px; margin-bottom: 8px; display: flex; justify-content: space-between;'
-                    },
-                    [textSpan, deactivateBtn]
-                );
+            deactivateBtn.addEventListener("click", () => {
+                deactivateUser(httpClient, state, updateUI, user.id);
+            });
 
+            const userItem = createElement("div", { class: 'list-row' }, [infoContainer, deactivateBtn]);
                 list.appendChild(userItem);
-            
             }
             cont.appendChild(list);
-
         });
-    }   
+    }
+
+
+
+
+
+
+
+
+

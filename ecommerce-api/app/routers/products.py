@@ -48,5 +48,4 @@ async def create_product_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin),
 ):
-    new_product = await create_product(db, product_in)
-    return new_product
+    return await create_product(db, product_in)
