@@ -28,7 +28,8 @@ if (!container || !navContainer) {
 
 const authManager = new AuthManager();
 const router = new Router(authManager, container);
-const httpClient = new HttpClient(authManager);
+const apiURL = import.meta.env.VITE_API_URL;
+const httpClient = new HttpClient(authManager, apiURL);
 
 
 renderNavBar(navContainer, authManager);
@@ -86,4 +87,20 @@ router.register({
 
 router.start();
 
+document.addEventListener("click", (e) => {
+  const target = (e.target as HTMLElement).closest("[data-link]");
 
+  if (target) {
+    e.preventDefault(); // default browser reload
+    const path = target.getAttribute("href") ?? null; 
+
+    if (path) {
+      router.navigate(path);
+    } else if (path === null) {
+      console.log("Error");
+    }
+    
+  }
+})
+
+router.start();

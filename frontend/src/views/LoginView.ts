@@ -5,10 +5,33 @@
 
 
 import AuthManager from "../auth/Auth";
+import { HttpClient } from "../api/HttpClient";
 import Router from "../router/Router";
 
-export function LoginView(container: HTMLElement, authManager: AuthManager, router: Router) {
+export function LoginView(container: HTMLElement, authManager: AuthManager, httpClient: HttpClient, router: Router) {
     
+    async function handleLogin(email: string, password: string) {
+        const formData = new URLSearchParams();
+        formData.append("username", email);
+        formData.append("password", password);
+
+        try {
+            const response = await httpClient.request('/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/x-www-form-urlencoded'
+                },
+                body: formData.toString()
+            });
+
+            authManager.login(response.access_token);
+            router.navigate("/");
+
+        } catch (error: any) {
+            alert("Login failed " + error.message);
+        }
+    }
+
     container.innerHTML = "";
     
     const form = document.createElement("form");
