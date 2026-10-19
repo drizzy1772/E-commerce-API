@@ -53,3 +53,10 @@ class LedgerEntryType(str, Enum):
     SELLER_PAYOUT = "seller_payout"
     PLATFORM_FEE = "platform_fee"
     BUYER_REFUND = "buyer_refund"
+    DEPOSIT = "deposit"
+    WITHDRAWAL = "withdrawal"
+
+    PURCHASE = "purchase"
+    SALE_REVENUE = "sale_revenue"    
+    PLATFORM_FEE = "platform_fee"     
+    BUYER_REFUND = "buyer_refund"
